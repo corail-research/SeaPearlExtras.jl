@@ -22,3 +22,9 @@ docs/site/
 # committed for packages, but should be committed for applications that require a static
 # environment.
 Manifest.toml
+
+# Configuration files for VSCode
+.vscode/
+
+# Configuration files for MacOS
+.DS_Store&
