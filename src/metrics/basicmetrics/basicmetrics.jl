@@ -3,7 +3,7 @@ using SeaPearl: BasicMetrics, AbstractMetrics, AbstractTakeObjective, TakeObject
 include("dataframes.jl")
 include("plots.jl")
 
-export store_data
+export storedata
 export plotNodeVisited
 export plotScoreVariation
 export plotRewardVariation

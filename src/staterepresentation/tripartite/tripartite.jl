@@ -1,6 +1,6 @@
 using SeaPearl: DefaultStateRepresentation, VariableVertex, ValueVertex
 
-function plot_tripartite(sr::DefaultStateRepresentation)
+function plottripartite(sr::DefaultStateRepresentation)
     cpmodel = sr.cplayergraph
     n = cpmodel.totalLength
     nodefillc = []
@@ -13,4 +13,4 @@ function plot_tripartite(sr::DefaultStateRepresentation)
     gplot(cpmodel;nodefillc=nodefillc)
 end
 
-export plot_tripartite
+export plottripartite
