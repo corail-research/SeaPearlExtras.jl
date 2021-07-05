@@ -4,17 +4,33 @@
 Store useful results from consecutive search in `.csv` file. 
 """
 function storedata(metrics::BasicMetrics; filename::String="")
-    df = DataFrame()
-    df[!, "node_visited"] = metrics.nodeVisited
-    df[!, "node_visited_until_first_solution_found"] = metrics.meanNodeVisitedUntilfirstSolFound
-    df[!, "node_visited_until_optimality"] = metrics.meanNodeVisitedUntilOptimality
-    df[!, "time_needed"] = metrics.timeneeded
-    if !isnothing(metrics.scores)           
-        df[!, "score"] = metrics.scores
-    end
-    if !isnothing(metrics.totalReward)   #if the heuristic is a learned heuristic
-        df[!, "total_reward"] = metrics.totalReward
-        df[!, "loss"] = metrics.loss
+    df = DataFrame(
+        Episode = Int[], 
+        Solution = Int[], 
+        Nodes = Int[], 
+        Time = Float64[], 
+        Score = Union{Missing, Float64}[], 
+        Reward = Union{Missing, Float64}[], 
+        Loss = Union{Missing, Float64}[]
+    )
+    for i = 1:metrics.nbEpisodes
+        episodeData = Dict(
+            :Episode => i,
+            :Solution => 0,
+            :Nodes => metrics.meanNodeVisitedUntilOptimality[i],
+            :Time => metrics.timeneeded[i],
+            :Score => isnothing(metrics.scores) ? missing : metrics.scores[i],
+            :Reward => isnothing(metrics.totalReward) ? missing : metrics.totalReward[i],
+            :Loss => isnothing(metrics.loss) ? missing : metrics.loss[i]
+        )
+        push!(df, episodeData)
+        for j = 1:length(metrics.nodeVisited[i])
+            solutionData = copy(episodeData)
+            solutionData[:Solution] = j
+            solutionData[:Nodes] = metrics.nodeVisited[i][j]
+            push!(df, solutionData)
+        end
     end
     CSV.write(filename*".csv", df)
+    return df
 end
