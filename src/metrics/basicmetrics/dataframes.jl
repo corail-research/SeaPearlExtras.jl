@@ -19,7 +19,7 @@ function storedata(metrics::BasicMetrics; filename::String="")
             :Solution => 0,
             :Nodes => metrics.meanNodeVisitedUntilOptimality[i],
             :Time => metrics.timeneeded[i],
-            :Score => isnothing(metrics.scores) ? missing : metrics.scores[i],
+            :Score => missing,
             :Reward => isnothing(metrics.totalReward) ? missing : metrics.totalReward[i],
             :Loss => isnothing(metrics.loss) ? missing : metrics.loss[i]
         )
@@ -28,6 +28,7 @@ function storedata(metrics::BasicMetrics; filename::String="")
             solutionData = copy(episodeData)
             solutionData[:Solution] = j
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
+            solutionData[:Score] = isnothing(metrics.scores) ? missing : metrics.scores[i][j]
             push!(df, solutionData)
         end
     end
