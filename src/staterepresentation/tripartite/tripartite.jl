@@ -12,3 +12,5 @@ function plot_tripartite(sr::DefaultStateRepresentation)
     end
     gplot(cpmodel;nodefillc=nodefillc)
 end
+
+export plot_tripartite
