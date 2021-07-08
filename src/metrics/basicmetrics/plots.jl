@@ -11,11 +11,15 @@ The learning process should show a decrease in the number of nodes required to f
 function plotNodeVisited(metricsArray::Union{BasicMetrics, Vector{AbstractMetrics}}; filename::String="")
     L = length(metricsArray[1].meanNodeVisitedUntilOptimality)
     Label = Matrix{String}(undef, 1, length(metricsArray))
+    learnedIdx = 1
+    basicIdx = 1
     for j in 1:length(metricsArray) #nb of heuristics
         if isa(metricsArray[j].heuristic, LearnedHeuristic)
-            Label[1,j]="Learned heuristic n°$j"
+            Label[1,j]="Learned heuristic n°$learnedIdx"
+            learnedIdx += 1
         else
-            Label[1,j]="Classic heuristic n°$(j-1)"
+            Label[1,j]="Classic heuristic n°$basicIdx"
+            basicIdx += 1
         end
     end 
     p1 = plot(
