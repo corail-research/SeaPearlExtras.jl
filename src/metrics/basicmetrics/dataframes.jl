@@ -3,9 +3,10 @@
 
 Store useful results from consecutive search in `.csv` file. 
 """
-function storedata(metrics::BasicMetrics; filename::String="")
+function storedata(metrics::AbstractMetrics; filename::String="")
     df = DataFrame(
-        Episode = Int[], 
+        Episode = Int[],
+        Instance = Missing, 
         Solution = Int[], 
         Nodes = Int[], 
         Time = Float64[], 
@@ -16,6 +17,7 @@ function storedata(metrics::BasicMetrics; filename::String="")
     for i = 1:metrics.nbEpisodes
         episodeData = Dict(
             :Episode => i,
+            :Instance => missing,
             :Solution => 0,
             :Nodes => metrics.meanNodeVisitedUntilOptimality[i],
             :Time => metrics.timeneeded[i],
@@ -29,6 +31,42 @@ function storedata(metrics::BasicMetrics; filename::String="")
             solutionData[:Solution] = j
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
             solutionData[:Score] = isnothing(metrics.scores) ? missing : metrics.scores[i][j]
+            push!(df, solutionData)
+        end
+    end
+    CSV.write(filename*".csv", df)
+    return df
+end
+
+function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
+    df = DataFrame(
+        Episode = Int[],
+        Instance = Int[], 
+        Solution = Int[], 
+        Nodes = Int[], 
+        Time = Float64[], 
+        Score = Union{Missing, Float64}[], 
+        Reward = Union{Missing, Float64}[], 
+        Loss = Union{Missing, Float64}[]
+    )
+    nbInstances = length(metrics)
+    for j in 1:nbInstances, i = 1:metrics[j].nbEpisodes 
+        episodeData = Dict(
+            :Episode => i,
+            :Instance => j,
+            :Solution => 0,
+            :Nodes => metrics[j].meanNodeVisitedUntilOptimality[i],
+            :Time => metrics[j].timeneeded[i],
+            :Score => missing,
+            :Reward => isnothing(metrics[j].totalReward) ? missing : metrics[j].totalReward[i],
+            :Loss => isnothing(metrics[j].loss) ? missing : metrics[j].loss[i]
+        )
+        push!(df, episodeData)
+        for k = 1:length(metrics[j].nodeVisited[i])
+            solutionData = copy(episodeData)
+            solutionData[:Solution] = k
+            solutionData[:Nodes] = metrics[j].nodeVisited[i][k]
+            solutionData[:Score] = isnothing(metrics[j].scores) ? missing : metrics[j].scores[i][k]
             push!(df, solutionData)
         end
     end
