@@ -30,7 +30,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             solutionData = copy(episodeData)
             solutionData[:Solution] = j
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
-            solutionData[:Score] = isnothing(metrics.scores) | isnothing(metrics.scores[i][k]) ? missing : metrics.scores[i][j]
+            solutionData[:Score] = isnothing(metrics.scores) | isnothing(metrics.scores[i][j]) ? missing : metrics.scores[i][j]
             push!(df, solutionData)
         end
     end
