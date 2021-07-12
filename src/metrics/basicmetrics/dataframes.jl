@@ -10,7 +10,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
         Solution = Int[], 
         Nodes = Int[], 
         Time = Float64[], 
-        Score = Union{Missing, Union{Missing,Float64}}[], 
+        Score = Union{Missing, Float64}[], 
         Reward = Union{Missing, Float64}[], 
         Loss = Union{Missing, Float64}[]
     )
