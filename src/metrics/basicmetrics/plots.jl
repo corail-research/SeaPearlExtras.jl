@@ -9,7 +9,7 @@ The learning process should show a decrease in the number of nodes required to f
 (depending on the reward engineering).
 """
 function plotNodeVisited(metricsArray::Union{BasicMetrics, Vector{AbstractMetrics}}; filename::String="")
-    L = length(metricsArray[1].meanNodeVisitedUntilOptimality)
+    L = length(metricsArray[1].meanNodeVisitedUntilEnd)
     Label = Matrix{String}(undef, 1, length(metricsArray))
     learnedIdx = 1
     basicIdx = 1
@@ -24,7 +24,7 @@ function plotNodeVisited(metricsArray::Union{BasicMetrics, Vector{AbstractMetric
     end 
     p1 = plot(
         1:L, 
-        [metricsArray[i].meanNodeVisitedUntilOptimality[1:L] for i in 1:length(metricsArray)], 
+        [metricsArray[i].meanNodeVisitedUntilEnd[1:L] for i in 1:length(metricsArray)], 
         title = "Node visited until optimality",
         label=Label,
         xlabel="Episode",
@@ -43,10 +43,10 @@ end
 
 
 function plotNodeVisited(metrics::BasicMetrics; filename::String="")
-    L = length(metrics.meanNodeVisitedUntilOptimality)
+    L = length(metrics.meanNodeVisitedUntilEnd)
     p = plot(
         1:L, 
-        [metrics.meanNodeVisitedUntilOptimality[1:L] metrics.meanNodeVisitedUntilfirstSolFound[1:L]], 
+        [metrics.meanNodeVisitedUntilEnd[1:L] metrics.meanNodeVisitedUntilfirstSolFound[1:L]], 
         xlabel="Episode", 
         ylabel="Nodes visited",
         title = ["Node visited until Optimality" "Node visited until first solution found"],
