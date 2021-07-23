@@ -1,6 +1,6 @@
 @enum TokenType begin
-    VAR = 1
-    INT = 2
+    var = 1
+    int = 2
     COLON = 3
     EQUAL = 4
 end
