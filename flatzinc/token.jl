@@ -4,6 +4,7 @@
     COLON = 3
     EQUAL = 4
     EOF = 5
+    ID = 6
 end
 
 struct Token
