@@ -3,6 +3,7 @@
     int = 2
     COLON = 3
     EQUAL = 4
+    EOF = 5
 end
 
 struct Token
