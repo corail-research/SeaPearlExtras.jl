@@ -43,7 +43,6 @@ function skipWhiteSpace(lexer::Lexer)
     end
 end
 
-
 function id(lexer::Lexer)
     result = ""
     while lexer.currentCharacter !== nothing && 
@@ -54,6 +53,30 @@ function id(lexer::Lexer)
     token = get(RESERVED_KEYWORDS, result, Token(ID, result))
     return token
 end
+
+
+function number(lexer::Lexer)
+    """Return a (multidigit) integer or float consumed from the input."""
+    result = ""
+    while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
+        result =result*lexer.currentCharacter
+        advance(lexer)
+    end
+    if lexer.currentCharacter == '.'
+        result = result*lexer.currentCharacter
+        advance(lexer)
+        while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
+            result =result*lexer.currentCharacter
+            advance(lexer)
+        end
+        token = Token(REAL_CONST, parse(Float64,result))
+    else
+        token = Token(INT_CONST, parse(Int64,result))
+    end
+
+    return token
+end
+
 
 function peek(lexer::Lexer)
     peek_pos = lexer.current_pos + 1
@@ -81,9 +104,6 @@ function getNextToken(lexer::Lexer)
             advance(lexer)
             return Token(octal, "0o")
         end
-        if isletter(lexer.currentCharacter)
-            return id(lexer)
-        end
         if lexer.currentCharacter == ':' && peek(lexer) == ':'
             advance(lexer)
             advance(lexer)
@@ -94,7 +114,12 @@ function getNextToken(lexer::Lexer)
             advance(lexer)
             return Token(PP, "..")
         end
-
+        if isletter(lexer.currentCharacter)
+            return id(lexer)
+        end
+        if (isdigit(lexer.currentCharacter[1]))
+            return number(lexer)
+        end
         if lexer.currentCharacter == ':'
             advance(lexer)
             return Token(COLON, ':')

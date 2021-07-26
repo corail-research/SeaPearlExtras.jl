@@ -29,6 +29,8 @@
     maximize  = 28
     hexadicimal = 29
     octal = 30
+    INT_CONST = 31
+    REAL_CONST = 32
 end
 
 struct Token
