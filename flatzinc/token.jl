@@ -5,6 +5,7 @@
     EQUAL = 4
     EOF = 5
     ID = 6
+    COMMA = 7
 end
 
 struct Token
