@@ -6,6 +6,9 @@
     EOF = 5
     ID = 6
     COMMA = 7
+    DOUBLE_COLON = 8
+    bool = 9
+    float = 10
 end
 
 struct Token

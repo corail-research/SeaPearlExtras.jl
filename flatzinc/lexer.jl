@@ -2,7 +2,9 @@ include("token.jl")
 import Base.parse
 
 RESERVED_KEYWORDS = Dict([("var", Token(var, "var")), 
-                            ("int", Token(int, "int"))])
+                            ("int", Token(int, "int")),
+                            ("bool", Token(bool, "bool")),
+                            ("float", Token(float, "float"))])
 
 mutable struct Lexer
     text::String
@@ -42,6 +44,15 @@ function id(lexer::Lexer)
     return token
 end
 
+function peek(lexer::Lexer)
+    peek_pos = lexer.current_pos + 1
+    if peek_pos > length(lexer.text) - 1
+        return nothing
+    else
+        return lexer.text[peek_pos]
+    end
+end
+
 
 function getNextToken(lexer::Lexer)
     while (lexer.currentCharacter) !== nothing
@@ -51,6 +62,11 @@ function getNextToken(lexer::Lexer)
         end        
         if isletter(lexer.currentCharacter)
             return id(lexer)
+        end
+        if lexer.currentCharacter == ':' && peek(lexer) == ':'
+            advance(lexer)
+            advance(lexer)
+            return Token(DOUBLE_COLON, "::")
         end
         if lexer.currentCharacter == ':'
             advance(lexer)
