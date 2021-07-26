@@ -4,7 +4,18 @@ import Base.parse
 RESERVED_KEYWORDS = Dict([("var", Token(var, "var")), 
                             ("int", Token(int, "int")),
                             ("bool", Token(bool, "bool")),
-                            ("float", Token(float, "float"))])
+                            ("float", Token(float, "float")),
+                            ("true", Token(TRUE, "true")),
+                            ("false", Token(FALSE, "false")),
+                            ("set", Token(set, "set")),
+                            ("of", Token(of, "of")),
+                            ("array", Token(array, "array")),
+                            ("predicate", Token(predicate, "predicate")),
+                            ("constraint", Token(constraint, "constraint")),
+                            ("solve", Token(solve, "solve")),
+                            ("satisfy", Token(satisfy, "satisfy")),
+                            ("maximize", Token(maximize, "maximize")),
+                            ("minimize", Token(minimize, "minimize"))])
 
 mutable struct Lexer
     text::String
@@ -46,7 +57,7 @@ end
 
 function peek(lexer::Lexer)
     peek_pos = lexer.current_pos + 1
-    if peek_pos > length(lexer.text) - 1
+    if peek_pos > length(lexer.text) 
         return nothing
     else
         return lexer.text[peek_pos]
@@ -60,6 +71,16 @@ function getNextToken(lexer::Lexer)
             skipWhiteSpace(lexer)
             continue
         end        
+        if lexer.currentCharacter == '0' && peek(lexer) == 'x'
+            advance(lexer)
+            advance(lexer)
+            return Token(hexadicimal, "0x")
+        end
+        if lexer.currentCharacter == '0' && peek(lexer) == 'o'
+            advance(lexer)
+            advance(lexer)
+            return Token(octal, "0o")
+        end
         if isletter(lexer.currentCharacter)
             return id(lexer)
         end
@@ -68,6 +89,12 @@ function getNextToken(lexer::Lexer)
             advance(lexer)
             return Token(DOUBLE_COLON, "::")
         end
+        if lexer.currentCharacter == '.' && peek(lexer) == '.'
+            advance(lexer)
+            advance(lexer)
+            return Token(PP, "..")
+        end
+
         if lexer.currentCharacter == ':'
             advance(lexer)
             return Token(COLON, ':')
@@ -76,7 +103,36 @@ function getNextToken(lexer::Lexer)
             advance(lexer)
             return Token(COMMA, ';')
         end
+        if lexer.currentCharacter == '('
+            advance(lexer)
+            return Token(LP, '(')
+        end
+        if lexer.currentCharacter == ')'
+            advance(lexer)
+            return Token(RP, ')')
+        end
+        if lexer.currentCharacter == '['
+            advance(lexer)
+            return Token(LB, '[')
+        end
+        if lexer.currentCharacter == ']'
+            advance(lexer)
+            return Token(RB, ']')
+        end
+        if lexer.currentCharacter == '{'
+            advance(lexer)
+            return Token(LCB, '{')
+        end        
+        if lexer.currentCharacter == '}'
+            advance(lexer)
+            return Token(RCB, '}')
+        end
+        if lexer.currentCharacter == '='
+            advance(lexer)
+            return Token(EQUAL, '=')
+        end
         error()
     end
     return Token(EOF, nothing)
 end
+
