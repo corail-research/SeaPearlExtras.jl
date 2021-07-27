@@ -22,7 +22,7 @@ include("../flatzinc/lexer.jl")
         @test token.type == ID
         @test token.value == "output_var"
         token = getNextToken(lexer)
-        @test token.type == COMMA
+        @test token.type == SEMICOLON
         @test token.value == ';'
         token = getNextToken(lexer)
         @test token.type == EOF
@@ -52,7 +52,7 @@ include("../flatzinc/lexer.jl")
         @test token.type == ID
         @test token.value == "output_var"
         token = getNextToken(lexer)
-        @test token.type == COMMA
+        @test token.type == SEMICOLON
         @test token.value == ';'
         token = getNextToken(lexer)
         @test token.type == var
@@ -67,7 +67,7 @@ include("../flatzinc/lexer.jl")
         @test token.type == ID
         @test token.value == "X_INTRODUCED_1_"
         token = getNextToken(lexer)
-        @test token.type == COMMA
+        @test token.type == SEMICOLON
         @test token.value == ';'
         token = getNextToken(lexer)
         @test token.type == EOF
@@ -78,7 +78,7 @@ include("../flatzinc/lexer.jl")
     @testset "all tokens" begin
         lexer = Lexer("var int : = allo  ; :: bool float ( ) [] true false set of array .. {}
                              predicate constraint solve satisfy minimize maximize 
-                             0x 0o  1.33 321")
+                             0x 0o  1.33 321 ,")
         token = getNextToken(lexer)
         @test token.type == var
         @test token.value == "var"
@@ -100,7 +100,7 @@ include("../flatzinc/lexer.jl")
         @test token.value == "allo"
 
         token = getNextToken(lexer)
-        @test token.type == COMMA
+        @test token.type == SEMICOLON
         @test token.value == ';'
 
         token = getNextToken(lexer)
@@ -130,7 +130,6 @@ include("../flatzinc/lexer.jl")
         token = getNextToken(lexer)
         @test token.type == RB
         @test token.value == ']'
-
 
         token = getNextToken(lexer)
         @test token.type == TRUE
@@ -203,6 +202,11 @@ include("../flatzinc/lexer.jl")
         token = getNextToken(lexer)
         @test token.type == INT_CONST
         @test token.value === 321
+
+        token = getNextToken(lexer)
+        @test token.type == COMMA
+        @test token.value === ','
+
 
         token = getNextToken(lexer)
         @test token.type == EOF

@@ -31,6 +31,7 @@
     octal = 30
     INT_CONST = 31
     REAL_CONST = 32
+    SEMICOLON = 33
 end
 
 struct Token

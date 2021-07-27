@@ -62,7 +62,7 @@ function number(lexer::Lexer)
         result =result*lexer.currentCharacter
         advance(lexer)
     end
-    if lexer.currentCharacter == '.'
+    if lexer.currentCharacter == '.' && peek(lexer) != "."
         result = result*lexer.currentCharacter
         advance(lexer)
         while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
@@ -126,7 +126,11 @@ function getNextToken(lexer::Lexer)
         end
         if lexer.currentCharacter == ';'
             advance(lexer)
-            return Token(COMMA, ';')
+            return Token(SEMICOLON, ';')
+        end
+        if lexer.currentCharacter == ','
+            advance(lexer)
+            return Token(COMMA, ',')
         end
         if lexer.currentCharacter == '('
             advance(lexer)
