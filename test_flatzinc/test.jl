@@ -227,8 +227,66 @@ include("../flatzinc/parser.jl")
         @test token.type == EOF
         @test token.value === nothing
     end
-
-
-
 end
+
+    @testset "Parser" begin
+    
+        @testset "variable statement" begin
+            lexer = Lexer("var int: X_INTRODUCED_2_;")
+            parser = Parser(lexer)
+            node = variable(parser)
+            @test node.type == int
+            @test node.id == "X_INTRODUCED_2_"
+            @test node.annotation === nothing
+        end
+    
+        @testset "variable statement" begin
+            lexer = Lexer("var int: X_INTRODUCED_2_::output_var;")
+            parser = Parser(lexer)
+            node = variable(parser)
+            @test node.type == int
+            @test node.id == "X_INTRODUCED_2_"
+            @test node.annotation == "output_var"
+        end
+    
+        @testset "variable statement" begin
+            lexer = Lexer("var float: X_INTRODUCED_2_::output_var;")
+            parser = Parser(lexer)
+            node = variable(parser)
+            @test node.type == float
+            @test node.id == "X_INTRODUCED_2_"
+            @test node.annotation == "output_var"
+        end
+    
+        @testset "variable statement" begin
+            lexer = Lexer("var bool: X_INTRODUCED_2_::output_var;")
+            parser = Parser(lexer)
+            node = variable(parser)
+            @test node.type == bool
+            @test node.id == "X_INTRODUCED_2_"
+            @test node.annotation == "output_var"
+        end
+
+        @testset "variable statement" begin
+            lexer = Lexer("var 0..5: X_INTRODUCED_2_::output_var;")
+            parser = Parser(lexer)
+            node = variable(parser)
+            @test node.type == INT_CONST
+            @test node.id == "X_INTRODUCED_2_"
+            @test node.annotation == "output_var"
+            @test node.min == 0
+            @test node.max == 5
+        end
+    
+        @testset "variable statement" begin
+            lexer = Lexer("var {0,4,2,5}: X_INTRODUCED_2_::output_var;")
+            parser = Parser(lexer)
+            node = variable(parser)
+            @test node.id == "X_INTRODUCED_2_"
+            @test node.annotation == "output_var"
+            @test node.domain == [0,4,2,5]
+        end
+
+    end
+
 
