@@ -1,6 +1,21 @@
 using Test
 include("../flatzinc/lexer.jl")
+include("../flatzinc/parser.jl")
+
 @testset "Lexer" begin
+
+    @testset "number fonction" begin
+        lexer = Lexer("1.3")
+        token = number(lexer)
+        @test token.type == REAL_CONST
+        @test token.value == 1.3
+
+        lexer = Lexer("1..3")
+        token = number(lexer)
+        @test token.type == INT_CONST
+        @test token.value == 1
+    end
+
     @testset "normal var statement" begin
         lexer = Lexer("var int: X_INTRODUCED_2_:: output_var;")
         token = getNextToken(lexer)
@@ -212,6 +227,8 @@ include("../flatzinc/lexer.jl")
         @test token.type == EOF
         @test token.value === nothing
     end
-end
 
+
+
+end
 

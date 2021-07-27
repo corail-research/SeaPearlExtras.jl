@@ -62,7 +62,7 @@ function number(lexer::Lexer)
         result =result*lexer.currentCharacter
         advance(lexer)
     end
-    if lexer.currentCharacter == '.' && peek(lexer) != "."
+    if lexer.currentCharacter == '.' && peek(lexer) != '.'
         result = result*lexer.currentCharacter
         advance(lexer)
         while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
