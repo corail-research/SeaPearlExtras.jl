@@ -20,6 +20,7 @@ function eat(parser::Parser, tokenType::TokenType)
 end
 
 
+
 function variable(parser::Parser)
     eat(parser, var)
     if parser.currentToken.type == bool || parser.currentToken.type == int || parser.currentToken.type == float
@@ -86,4 +87,61 @@ function variable(parser::Parser)
         error()
     end
     return node
+end
+
+
+function parameter(parser::Parser)
+    type = nothing
+    if (parser.currentToken.type != array && parser.currentToken.type != set)
+        if parser.currentToken.type == bool
+            eat(parser, bool)
+            type = bool
+        elseif parser.currentToken.type == int 
+            eat(parser, int)
+            type = int 
+        elseif parser.currentToken.type == float
+            eat(parser, float)
+            type = float
+        end
+        eat(parser, COLON)
+        id = parser.currentToken.value
+        eat(parser, ID)
+        eat(parser, EQUAL)
+        value = parser.currentToken.value
+        if type == bool
+            if value
+                eat(parser, TRUE)
+            else
+                eat(parser, FALSE)
+            end
+        elseif type == int 
+            eat(parser, INT_CONST)
+        elseif type == float
+            eat(parser, REAL_CONST)
+        end        
+        eat(parser, SEMICOLON)
+        return paramType(id, type, value)
+    elseif parser.currentToken.type == set
+        value = []
+        type = set
+        eat(parser, set)
+        eat(parser, of)
+        eat(parser, int)
+        id = parser.currentToken.value
+        eat(parser, ID)
+        eat(parser, EQUAL)
+
+        eat(parser, LCB)
+        push!(value, parser.currentToken.value)
+        eat(parser, INT_CONST)
+        while (parser.currentToken.type == COMMA)
+            eat(parser, COMMA)
+            push!(value, parser.currentToken.value)
+            eat(parser, INT_CONST)
+        end
+        eat(parser, RCB)
+        eat(parser, SEMICOLON)
+        return ParamType(id, type, value)
+    end
+
 end

@@ -287,6 +287,14 @@ end
             @test node.annotation == "output_var"
             @test node.domain == [0,4,2,5]
         end
+        @testset "parameter statement" begin
+            lexer = Lexer("bool: allo = true;")
+            parser = Parser(lexer)
+            node = parameter(parser)
+            @test node.id == "allo"
+            @test node.type == bool
+            @test node.value
+        end
 
 
     end

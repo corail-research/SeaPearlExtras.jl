@@ -1,6 +1,7 @@
 include("token.jl")
 abstract type AST end
 abstract type VAR  <: AST end
+abstract type PARAM  <: AST end
 
 struct VarUnbounded <: VAR
     id::String
@@ -21,5 +22,12 @@ struct VarDomain <: VAR
     id::String
     annotation
     domain
+end
+
+
+struct paramType <: PARAM
+    id
+    type::TokenType
+    value
 end
 
