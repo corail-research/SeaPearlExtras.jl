@@ -1,3 +1,4 @@
+using Base: parameter_upper_bound, Bool
 using Test
 include("../flatzinc/lexer.jl")
 include("../flatzinc/parser.jl")
@@ -148,11 +149,11 @@ include("../flatzinc/parser.jl")
 
         token = getNextToken(lexer)
         @test token.type == TRUE
-        @test token.value == "true"
+        @test token.value == true
 
         token = getNextToken(lexer)
         @test token.type == FALSE
-        @test token.value == "false"
+        @test token.value == false
 
         token = getNextToken(lexer)
         @test token.type == set
@@ -286,6 +287,7 @@ end
             @test node.annotation == "output_var"
             @test node.domain == [0,4,2,5]
         end
+
 
     end
 
