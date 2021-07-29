@@ -127,6 +127,7 @@ function parameter(parser::Parser)
         eat(parser, set)
         eat(parser, of)
         eat(parser, int)
+        eat(parser, COLON)
         id = parser.currentToken.value
         eat(parser, ID)
         eat(parser, EQUAL)
@@ -141,7 +142,7 @@ function parameter(parser::Parser)
         end
         eat(parser, RCB)
         eat(parser, SEMICOLON)
-        return ParamType(id, type, value)
+        return paramType(id, type, value)
     end
 
 end
