@@ -31,3 +31,8 @@ struct paramType <: PARAM
     value
 end
 
+struct arrayNode <: AST
+    start_index
+    end_index
+    variable_node 
+end

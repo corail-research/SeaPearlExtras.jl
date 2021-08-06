@@ -20,6 +20,21 @@ function eat(parser::Parser, tokenType::TokenType)
 end
 
 
+function array_litteral(parser::Parser)
+    eat(parser, array)
+    eat(parser, LB)
+    start_index = parser.currentToken.value
+    eat(parser, INT_CONST)
+    eat(parser, PP)
+    end_index = parser.currentToken.value
+    eat(parser, INT_CONST)
+    eat(parser, RB)
+    eat(parser, of)
+    variableNode = variable(parser)
+    return arrayNode(start_index, end_index, variableNode)
+
+end
+
 
 function variable(parser::Parser)
     eat(parser, var)
@@ -86,7 +101,6 @@ function variable(parser::Parser)
     else
         error()
     end
-    return node
 end
 
 
