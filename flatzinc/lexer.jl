@@ -69,6 +69,28 @@ function number(lexer::Lexer)
             result =result*lexer.currentCharacter
             advance(lexer)
         end
+        if (lexer.currentCharacter == 'E' || lexer.currentCharacter == 'e')
+            result = result*lexer.currentCharacter
+            advance(lexer)
+            result = result*lexer.currentCharacter
+            advance(lexer)
+            println(lexer.currentCharacter)
+            while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
+                result =result*lexer.currentCharacter
+                advance(lexer)
+            end
+        end
+        token = Token(REAL_CONST, parse(Float64,result))
+
+    elseif lexer.currentCharacter == 'E' || lexer.currentCharacter == 'e'
+        result = result*lexer.currentCharacter
+        advance(lexer)
+        result = result*lexer.currentCharacter
+        advance(lexer)
+        while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
+            result =result*lexer.currentCharacter
+            advance(lexer)
+        end
         token = Token(REAL_CONST, parse(Float64,result))
     else
         token = Token(INT_CONST, parse(Int64,result))
@@ -126,8 +148,8 @@ function getNextToken(lexer::Lexer)
         if lexer.currentCharacter == '0' && peek(lexer) == 'o'
             advance(lexer)
             advance(lexer)
-            octalNumber = octalNumber(lexer)
-            return Token(octal, octalNumber)
+            octaNumber = octalNumber(lexer)
+            return Token(octal, octaNumber)
         end
         if lexer.currentCharacter == ':' && peek(lexer) == ':'
             advance(lexer)

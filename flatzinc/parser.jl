@@ -38,6 +38,14 @@ end
 
 
 
+function float_literal(parser::Parser)
+    #= <float-literal> ::= [0-9]+.[0-9]+
+                  | [0-9]+.[0-9]+[Ee][-+]?[0-9]+
+                  | [0-9]+[Ee][-+]?[0-9]+
+                  =#
+
+end
+
 
 
 
