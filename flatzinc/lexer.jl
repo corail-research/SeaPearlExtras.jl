@@ -81,7 +81,7 @@ function octalNumber(lexer::Lexer)
     """Return a (multidigit) integer in octal"""
     result = ""
     while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
-        if (lexer.currentCharacter[1] > 7)
+        if (parse(Int64, lexer.currentCharacter[1]) > 7)
             error()
         end
         result = result*lexer.currentCharacter
@@ -120,14 +120,14 @@ function getNextToken(lexer::Lexer)
         if lexer.currentCharacter == '0' && peek(lexer) == 'x'
             advance(lexer)
             advance(lexer)
-            number = hexadecimalNumber(lexer)
-            return Token(hexadicimal, number)
+            hexaNumber = hexadecimalNumber(lexer)
+            return Token(hexadicimal, hexaNumber)
         end
         if lexer.currentCharacter == '0' && peek(lexer) == 'o'
             advance(lexer)
             advance(lexer)
-            number = octalNumber(lexer)
-            return Token(octal, number)
+            octalNumber = octalNumber(lexer)
+            return Token(octal, octalNumber)
         end
         if lexer.currentCharacter == ':' && peek(lexer) == ':'
             advance(lexer)

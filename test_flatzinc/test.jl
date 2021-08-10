@@ -94,7 +94,7 @@ include("../flatzinc/parser.jl")
     @testset "all tokens" begin
         lexer = Lexer("var int : = allo  ; :: bool float ( ) [] true false set of array .. {}
                              predicate constraint solve satisfy minimize maximize 
-                             0x 0o  1.33 321 ,")
+                             0x4422ff 0o4352 1.33 321 , ")
         token = getNextToken(lexer)
         @test token.type == var
         @test token.value == "var"
@@ -205,23 +205,23 @@ include("../flatzinc/parser.jl")
 
         token = getNextToken(lexer)
         @test token.type == hexadicimal
-        @test token.value === "0x"
+        @test token.value == "4422ff"
 
         token = getNextToken(lexer)
         @test token.type == octal
-        @test token.value === "0o"
+        @test token.value == "4352"
 
         token = getNextToken(lexer)
         @test token.type == REAL_CONST
-        @test token.value === 1.33
+        @test token.value == 1.33
 
         token = getNextToken(lexer)
         @test token.type == INT_CONST
-        @test token.value === 321
+        @test token.value == 321
 
         token = getNextToken(lexer)
         @test token.type == COMMA
-        @test token.value === ','
+        @test token.value == ','
 
 
         token = getNextToken(lexer)
