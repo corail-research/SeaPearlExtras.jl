@@ -20,6 +20,28 @@ function eat(parser::Parser, tokenType::TokenType)
 end
 
 
+function int_literal(parser::Parser)
+    #=Integer literals
+        <int-literal> ::= [0-9]+
+        | 0x[0-9A-Fa-f]+
+        | 0o[0-7]+ =#
+   interger = parser.currentToken.value
+   if parser.currentToken == hexadicimal
+        eat(parser, hexadecimal)
+   elseif parser.currentToken == octal     
+        eat(parser, octal)
+   else
+        eat(parser, INT_CONST)
+   end
+   return integer
+end
+
+
+
+
+
+
+
 function array_litteral(parser::Parser)
     eat(parser, array)
     eat(parser, LB)
@@ -32,7 +54,7 @@ function array_litteral(parser::Parser)
     eat(parser, of)
     variableNode = variable(parser)
     return arrayNode(start_index, end_index, variableNode)
-
+ 
 end
 
 
