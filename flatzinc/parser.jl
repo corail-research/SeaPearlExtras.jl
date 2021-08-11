@@ -19,13 +19,8 @@ function eat(parser::Parser, tokenType::TokenType)
     end
 end
 
-
 function int_literal(parser::Parser)
-    #=Integer literals
-        <int-literal> ::= [0-9]+
-        | 0x[0-9A-Fa-f]+
-        | 0o[0-7]+ =#
-   interger = parser.currentToken.value
+   integer = parser.currentToken.value
    if parser.currentToken == hexadicimal
         eat(parser, hexadecimal)
    elseif parser.currentToken == octal     
@@ -37,16 +32,86 @@ function int_literal(parser::Parser)
 end
 
 
-
 function float_literal(parser::Parser)
-    #= <float-literal> ::= [0-9]+.[0-9]+
-                  | [0-9]+.[0-9]+[Ee][-+]?[0-9]+
-                  | [0-9]+[Ee][-+]?[0-9]+
-                  =#
-
+    float = parser.currentToken.value
+    if parser.currentToken.type == INT_CONST
+        eat(parser, INT_CONST)
+    else
+        eat(parser, REAL_CONST)
+    end
+    return float
 end
 
 
+function bool_literal(parser::Parser)
+    value = true
+    if parser.currentToken.value == false
+        value = false 
+    end
+    eat(parser, bool)
+    return value 
+end
+
+
+
+function basic_var_type(parser::Parser)
+    eat(parser, var)
+    if (parser.currentToken.type == int)
+        eat(parser, int)
+        return BasicType(int)
+
+    elseif (parser.currentToken.type == bool)
+        eat(parser, bool)
+        return BasicType(bool)
+
+    elseif (parser.currentToken.type == INT_CONST || parser.currentToken.type == octal || parser.currentToken == hexadicimal)
+        start_value = int_literal(parser)
+        eat(parser, PP)
+        end_value = int_literal(parser)
+        return Interval(int, start_value, end_value)
+
+    elseif (parser.currentToken.type == LCB)
+        eat(parser, LCB)
+        value = []
+        push!(value, int_literal(parser))
+        while (parser.currentToken.type == COMMA)
+            eat(parser, COMMA)
+            push!(value, int_literal(parser))
+        end
+        eat(parser, RCB)
+        return Domain(int, value)
+
+    elseif (parser.currentToken.type == float)
+        eat(parser, float)
+        return BasicType(float)
+
+    elseif (parser.currentToken.type == REAL_CONST)
+        start_value = float_literal(parser)
+        eat(parser, PP)
+        end_value = float_literal(parser)
+        return Interval(float, start_value, end_value)
+
+    else 
+        eat(parser, set)
+        eat(parser, of)
+        if (parser.currentToken.type == LCB)
+            eat(parser, LCB)
+            value = []
+            push!(value, int_literal(parser))
+            while (parser.currentToken.type == COMMA)
+                eat(parser, COMMA)
+                push!(value, int_literal(parser))
+            end
+            eat(parser, RCB)
+            return Domain(int, value)
+        else
+            start_value = int_literal(parser)
+            eat(parser, PP)
+            end_value = int_literal(parser)
+            return Domain(int, start_value:end_value)
+        end     
+    end
+end
 
 
 function array_litteral(parser::Parser)

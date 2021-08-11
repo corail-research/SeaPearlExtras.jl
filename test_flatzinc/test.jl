@@ -373,4 +373,54 @@ end
         @test node.variable_node.domain == [3,5,6]
         @test node.variable_node.annotation == "oups"
     end
+
+
+    @testset "basic_var_type" begin
+        lexer = Lexer("var bool")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.name == bool
+
+        lexer = Lexer("var int")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.name == int
+
+        lexer = Lexer("var float")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.name == float
+
+        lexer = Lexer("var 1..4")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.type == int
+        @test node.start_value == 1
+        @test node.end_value == 4
+
+        lexer = Lexer("var 1.2..4")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.type == float
+        @test node.start_value == 1.2
+        @test node.end_value == 4
+
+        lexer = Lexer("var {2,3,4,6}")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.type == int
+        @test node.value == [2,3,4,6]
+
+        lexer = Lexer("var set of 1..3")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.type == int
+        @test node.value == [1,2,3]
+
+        lexer = Lexer("var set of {2,3,4,6}")
+        parser = Parser(lexer)
+        node = basic_var_type(parser)
+        @test node.type == int
+        @test node.value == [2,3,4,6]
+    end
 end

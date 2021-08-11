@@ -3,6 +3,21 @@ abstract type AST end
 abstract type VAR  <: AST end
 abstract type PARAM  <: AST end
 
+struct BasicType <: AST
+    name
+end
+
+struct Interval <: AST
+    type 
+    start_value
+    end_value
+end
+
+struct Domain <:AST
+    type
+    value
+end
+
 struct VarUnbounded <: VAR
     id::String
     type::TokenType
