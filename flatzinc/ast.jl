@@ -18,6 +18,13 @@ struct Domain <:AST
     value
 end
 
+struct BasicExpr <: AST
+    type 
+    value
+end
+
+
+
 struct VarUnbounded <: VAR
     id::String
     type::TokenType

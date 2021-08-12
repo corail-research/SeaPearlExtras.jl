@@ -398,7 +398,7 @@ end
         @test node.start_value == 1
         @test node.end_value == 4
 
-        lexer = Lexer("var 1.2..4")
+        lexer = Lexer("var 1.2..4.0")
         parser = Parser(lexer)
         node = basic_var_type(parser)
         @test node.type == float
@@ -422,5 +422,94 @@ end
         node = basic_var_type(parser)
         @test node.type == int
         @test node.value == [2,3,4,6]
+    end
+
+
+    @testset "set_literal" begin
+        lexer = Lexer("{1,2,4,5}")
+        parser = Parser(lexer)
+        node = set_literal(parser)
+        @test node.type == INT_CONST
+        @test node.value == [1,2,4,5]
+
+        lexer = Lexer("{1.2, 4.4, 5.0}")
+        parser = Parser(lexer)
+        node = set_literal(parser)
+        @test node.type == REAL_CONST
+        @test node.value == [1.2, 4.4, 5.0]
+
+        lexer = Lexer("1..4")
+        parser = Parser(lexer)
+        node = set_literal(parser)
+        @test node.type == INT_CONST
+        @test node.value == [1,2,3,4]
+
+        lexer = Lexer("1.5..4.0")
+        parser = Parser(lexer)
+        node = set_literal(parser)
+        @test node.type == REAL_CONST
+        @test node.start_value == 1.5
+        @test node.end_value == 4.0
+    end
+
+    @testset "basic_literal_expr" begin
+        lexer = Lexer("supp")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == ID
+        @test node.value == "supp"
+
+        lexer = Lexer("true")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == bool
+        @test node.value == true
+
+        lexer = Lexer("false")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == bool
+        @test node.value == false
+
+        lexer = Lexer("1")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == INT_CONST
+        @test node.value == 1
+
+        lexer = Lexer("1.2")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == REAL_CONST
+        @test node.value == 1.2
+
+        lexer = Lexer("1..3")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == set
+        @test node.value.type == INT_CONST
+        @test node.value.value == [1,2,3]
+
+        lexer = Lexer("1.2..3.0")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == set
+        @test node.value.type == REAL_CONST
+        @test node.value.start_value == 1.2
+        @test node.value.end_value == 3.0
+
+        lexer = Lexer("{1,2,32,3}")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == set
+        @test node.value.type == INT_CONST
+        @test node.value.value == [1,2,32,3]
+
+        lexer = Lexer("{1.3, 3.4}")
+        parser = Parser(lexer)
+        node = basic_literal_expr(parser)
+        @test node.type == set
+        @test node.value.type == REAL_CONST
+        @test node.value.value == [1.3, 3.4]
     end
 end
