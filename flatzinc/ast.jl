@@ -28,6 +28,10 @@ struct BasicExpr <: AST
     value
 end
 
+struct ArrayLiteral <: AST
+    values::Array
+end
+
 
 
 struct VarUnbounded <: VAR

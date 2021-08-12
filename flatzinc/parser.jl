@@ -191,6 +191,17 @@ end
 
 
 
+function array_literal(parser::Parser)
+    eat(parser, LB)
+    values = []
+    push!(values, basic_expr(parser))
+    while (parser.currentToken.type == COMMA)
+        eat(parser, COMMA)
+        push!(values, basic_expr(parser))
+    end
+    eat(parser, RB)
+    return ArrayLiteral(values)
+end
 
 
 

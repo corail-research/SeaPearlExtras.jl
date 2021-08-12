@@ -569,4 +569,24 @@ end
         @test node.value.type == REAL_CONST
         @test node.value.value == [1.3, 3.4]
     end
+
+
+    @testset "array_literal" begin
+        lexer = Lexer("[1,2,4,1]")
+        parser = Parser(lexer)
+        node = array_literal(parser)
+        @test node.values[1] == BasicLiteralExpr(INT_CONST, 1)
+        @test node.values[2] == BasicLiteralExpr(INT_CONST, 2)
+        @test node.values[3] == BasicLiteralExpr(INT_CONST, 4)
+        @test node.values[4] == BasicLiteralExpr(INT_CONST, 1)
+
+        lexer = Lexer("[true, false , false , true]")
+        parser = Parser(lexer)
+        node = array_literal(parser)
+        @test node.values[1] == BasicLiteralExpr(bool, true)
+        @test node.values[2] == BasicLiteralExpr(bool, false)
+        @test node.values[3] == BasicLiteralExpr(bool, false)
+        @test node.values[4] == BasicLiteralExpr(bool, true)    
+    end
+
 end
