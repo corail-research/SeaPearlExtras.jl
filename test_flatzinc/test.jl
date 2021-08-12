@@ -453,11 +453,6 @@ end
     end
 
     @testset "basic_literal_expr" begin
-        lexer = Lexer("supp")
-        parser = Parser(lexer)
-        node = basic_literal_expr(parser)
-        @test node.type == ID
-        @test node.value == "supp"
 
         lexer = Lexer("true")
         parser = Parser(lexer)
@@ -508,6 +503,68 @@ end
         lexer = Lexer("{1.3, 3.4}")
         parser = Parser(lexer)
         node = basic_literal_expr(parser)
+        @test node.type == set
+        @test node.value.type == REAL_CONST
+        @test node.value.value == [1.3, 3.4]
+    end
+
+
+    @testset "basic_expr" begin
+        lexer = Lexer("supp")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == ID
+        @test node.value == "supp"
+
+        lexer = Lexer("true")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == bool
+        @test node.value == true
+
+        lexer = Lexer("false")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == bool
+        @test node.value == false
+
+        lexer = Lexer("1")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == INT_CONST
+        @test node.value == 1
+
+        lexer = Lexer("1.2")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == REAL_CONST
+        @test node.value == 1.2
+
+        lexer = Lexer("1..3")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == set
+        @test node.value.type == INT_CONST
+        @test node.value.value == [1,2,3]
+
+        lexer = Lexer("1.2..3.0")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == set
+        @test node.value.type == REAL_CONST
+        @test node.value.start_value == 1.2
+        @test node.value.end_value == 3.0
+
+        lexer = Lexer("{1,2,32,3}")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
+        @test node.type == set
+        @test node.value.type == INT_CONST
+        @test node.value.value == [1,2,32,3]
+
+        lexer = Lexer("{1.3, 3.4}")
+        parser = Parser(lexer)
+        node = basic_expr(parser)
         @test node.type == set
         @test node.value.type == REAL_CONST
         @test node.value.value == [1.3, 3.4]

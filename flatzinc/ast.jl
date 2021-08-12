@@ -18,8 +18,13 @@ struct Domain <:AST
     value
 end
 
-struct BasicExpr <: AST
+struct BasicLiteralExpr <: AST
     type 
+    value
+end
+
+struct BasicExpr <: AST
+    type
     value
 end
 

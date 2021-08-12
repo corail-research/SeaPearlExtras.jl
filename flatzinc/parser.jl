@@ -146,45 +146,48 @@ end
 
 
 function basic_literal_expr(parser::Parser)
-    if (parser.currentToken.type == ID)
-        value = parser.currentToken.value
-        eat(parser, ID)
-        return BasicExpr(ID, value)
-
-    elseif (parser.currentToken.value === true || parser.currentToken.value === false)
+    if (parser.currentToken.value === true || parser.currentToken.value === false)
         value = bool_literal(parser)
-        return BasicExpr(bool, value)
+        return BasicLiteralExpr(bool, value)
 
     elseif (parser.currentToken.type == LCB)
-        return BasicExpr(set, set_literal(parser))
+        return BasicLiteralExpr(set, set_literal(parser))
 
     elseif (parser.currentToken.type == REAL_CONST)
         type = REAL_CONST
         value = float_literal(parser)
         if (parser.currentToken.type != PP)
-            return BasicExpr(type, value)
+            return BasicLiteralExpr(type, value)
         else
             eat(parser, PP)
             value_end = float_literal(parser)
-            return BasicExpr(set, Interval(type, value, value_end))
+            return BasicLiteralExpr(set, Interval(type, value, value_end))
         end
     elseif (parser.currentToken.type == INT_CONST)
         type = INT_CONST
         value = int_literal(parser)
         if (parser.currentToken.type != PP)
-            return BasicExpr(type, value)
+            return BasicLiteralExpr(type, value)
         else
             eat(parser, PP)
             value_end = int_literal(parser)
-            return BasicExpr(set, Domain(type, value:value_end))
+            return BasicLiteralExpr(set, Domain(type, value:value_end))
         end
     end
 end
 
 
 
+function basic_expr(parser::Parser)
+    if (parser.currentToken.type == ID)
+        name = parser.currentToken.value
+        eat(parser, ID)
+        return BasicExpr(ID, name)
 
-
+    else
+        return basic_literal_expr(parser)
+    end
+end
 
 
 
