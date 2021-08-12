@@ -32,18 +32,31 @@ struct ArrayLiteral <: AST
     values::Array
 end
 
-
 struct Annotation <: AST
     id
     value
 end
 
-
-
 struct Annotations <: AST
     annotationsList::Array{Annotation}
 end
 
+struct IndexSet <: AST
+    start_value
+    end_value
+end
+
+struct ArrayVarType <: AST
+    range::IndexSet
+    type
+end
+
+struct VarDeclItem<:AST
+    type
+    id
+    annotations
+    annotations_values
+end
 
 
 

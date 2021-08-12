@@ -245,105 +245,53 @@ function ann_exp(parser::Parser)
     end
 end
 
+function index_set(parser::Parser)
+    start_value = int_literal(parser)
+    eat(parser, PP)
+    end_value = int_literal(parser)
+    return IndexSet(start_value, end_value)
+end
 
-
-function array_litteral(parser::Parser)
+function array_var_type(parser::Parser)
     eat(parser, array)
     eat(parser, LB)
-    start_index = parser.currentToken.value
-    eat(parser, INT_CONST)
-    eat(parser, PP)
-    end_index = parser.currentToken.value
-    eat(parser, INT_CONST)
+    range = index_set(parser)
     eat(parser, RB)
     eat(parser, of)
-    variableNode = variable(parser)
-    return arrayNode(start_index, end_index, variableNode)
- 
+    type = basic_var_type(parser)
+    return ArrayVarType(range, type)
 end
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function variable(parser::Parser)
-    eat(parser, var)
-    if parser.currentToken.type == bool || parser.currentToken.type == int || parser.currentToken.type == float
-        type = parser.currentToken.type
-        eat(parser, parser.currentToken.type)
+function var_decl_item(parser::Parser)
+    if (parser.currentToken.type == array)
+        type = array_var_type(parser)
         eat(parser, COLON)
         id = parser.currentToken.value
         eat(parser, ID)
-        annotation = nothing
-        if (parser.currentToken.type == DOUBLE_COLON)
-            eat(parser, DOUBLE_COLON)
-            annotation = parser.currentToken.value
-            eat(parser, ID)
-        end
+        anns = annotations(parser)
+        eat(parser, EQUAL)
+        annotations_values = array_literal(parser)
         eat(parser, SEMICOLON)
-        return VarUnbounded(id, type, annotation)
-    elseif parser.currentToken.type == INT_CONST || parser.currentToken.type == REAL_CONST
-        startToken = parser.currentToken
-        eat(parser, startToken.type)
-        eat(parser, PP)
-        endToken = parser.currentToken
-        eat(parser, parser.currentToken.type)
-        eat(parser, COLON)
-        id = parser.currentToken.value
-        eat(parser, ID)
-        annotation = nothing
-        if (parser.currentToken.type == DOUBLE_COLON)
-            eat(parser, DOUBLE_COLON)
-            annotation = parser.currentToken.value
-            eat(parser, ID)
-        end
-        if (startToken.type == INT_CONST && endToken.type == INT_CONST)
-            type = INT_CONST
-        else
-            type = REAL_CONST
-        end
-        eat(parser, SEMICOLON)
-
-        return VarInterval(id, annotation, type, startToken.value, endToken.value)
-    elseif parser.currentToken.type == LCB
-        domain = []
-        eat(parser, LCB)
-        push!(domain, parser.currentToken.value)
-        eat(parser, INT_CONST)
-        while (parser.currentToken.type == COMMA)
-            eat(parser, COMMA)
-            push!(domain, parser.currentToken.value)
-            eat(parser, INT_CONST)
-        end
-        eat(parser, RCB)
-        eat(parser, COLON)
-        id = parser.currentToken.value
-        eat(parser, ID)
-        annotation = nothing
-        if (parser.currentToken.type == DOUBLE_COLON)
-            eat(parser, DOUBLE_COLON)
-            annotation = parser.currentToken.value
-            eat(parser, ID)
-        end
-        eat(parser, SEMICOLON)
-
-        return VarDomain(id, annotation, domain)
     else
-        error()
+        type = basic_var_type(parser)
+        eat(parser, COLON)
+        id = parser.currentToken.value
+        eat(parser, ID)
+        anns = nothing
+        if (parser.currentToken.type == DOUBLE_COLON)
+            anns = annotations(parser)
+        end
+        annotations_values = nothing
+        if (parser.currentToken.type == EQUAL)
+            eat(parser, EQUAL)
+            annotations_values = basic_expr(parser)
+        end
+        eat(parser, SEMICOLON)
     end
+    return VarDeclItem(type, id, anns, annotations_values)
 end
+                
 
 
 function parameter(parser::Parser)

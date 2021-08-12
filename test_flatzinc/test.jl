@@ -238,62 +238,7 @@ include("../flatzinc/parser.jl")
 end
 
 @testset "Parser" begin
-    
-    @testset "variable statement" begin
-        lexer = Lexer("var int: X_INTRODUCED_2_;")
-        parser = Parser(lexer)
-        node = variable(parser)
-        @test node.type == int
-        @test node.id == "X_INTRODUCED_2_"
-        @test node.annotation === nothing
-    end
-    
-    @testset "variable statement" begin
-        lexer = Lexer("var int: X_INTRODUCED_2_::output_var;")
-        parser = Parser(lexer)
-        node = variable(parser)
-        @test node.type == int
-        @test node.id == "X_INTRODUCED_2_"
-        @test node.annotation == "output_var"
-    end
-    
-    @testset "variable statement" begin
-        lexer = Lexer("var float: X_INTRODUCED_2_::output_var;")
-        parser = Parser(lexer)
-        node = variable(parser)
-        @test node.type == float
-        @test node.id == "X_INTRODUCED_2_"
-        @test node.annotation == "output_var"
-    end
-    
-    @testset "variable statement" begin
-        lexer = Lexer("var bool: X_INTRODUCED_2_::output_var;")
-        parser = Parser(lexer)
-        node = variable(parser)
-        @test node.type == bool
-        @test node.id == "X_INTRODUCED_2_"
-        @test node.annotation == "output_var"
-    end
 
-    @testset "variable statement" begin
-        lexer = Lexer("var 0..5: X_INTRODUCED_2_::output_var;")
-        parser = Parser(lexer)
-        node = variable(parser)
-        @test node.type == INT_CONST
-        @test node.id == "X_INTRODUCED_2_"
-        @test node.annotation == "output_var"
-        @test node.min == 0
-        @test node.max == 5
-    end
-    
-    @testset "variable statement" begin
-        lexer = Lexer("var {0,4,2,5}: X_INTRODUCED_2_::output_var;")
-        parser = Parser(lexer)
-        node = variable(parser)
-        @test node.id == "X_INTRODUCED_2_"
-        @test node.annotation == "output_var"
-        @test node.domain == [0,4,2,5]
-    end
     @testset "parameter statement" begin
         lexer = Lexer("bool: allo = true;")
         parser = Parser(lexer)
@@ -328,50 +273,6 @@ end
         @test node.id == "allo"
         @test node.type == set
         @test node.value == [4,5,9]
-    end
-    @testset "array statement" begin
-        lexer = Lexer("array[1..3] of var int: allo;")
-        parser = Parser(lexer)
-        node = array_litteral(parser)
-        @test node.start_index == 1
-        @test node.end_index == 3
-        @test node.variable_node.id == "allo"
-        @test node.variable_node.type == int 
-        @test node.variable_node.annotation === nothing
-    end
-
-    @testset "array statement" begin
-        lexer = Lexer("array[1..3] of var float: allo;")
-        parser = Parser(lexer)
-        node = array_litteral(parser)
-        @test node.start_index == 1
-        @test node.end_index == 3
-        @test node.variable_node.id == "allo"
-        @test node.variable_node.type == float 
-        @test node.variable_node.annotation === nothing
-    end
-
-    @testset "array statement" begin
-        lexer = Lexer("array[1..3] of var 1..6: allo;")
-        parser = Parser(lexer)
-        node = array_litteral(parser)
-        @test node.start_index == 1
-        @test node.end_index == 3
-        @test node.variable_node.id == "allo"
-        @test node.variable_node.min == 1
-        @test node.variable_node.max == 6
-        @test node.variable_node.annotation === nothing
-    end
-
-    @testset "array statement" begin
-        lexer = Lexer("array[1..3] of var {3,5,6}: allo::oups;")
-        parser = Parser(lexer)
-        node = array_litteral(parser)
-        @test node.start_index == 1
-        @test node.end_index == 3
-        @test node.variable_node.id == "allo"
-        @test node.variable_node.domain == [3,5,6]
-        @test node.variable_node.annotation == "oups"
     end
 
 
@@ -605,6 +506,100 @@ end
         @test node.annotationsList[1].value[1].values[1].type == set
         @test node.annotationsList[1].value[1].values[1].value.type == INT_CONST
         @test node.annotationsList[1].value[1].values[1].value.value == [1,2,3]
+    end
+
+    @testset "array_var_type" begin
+        lexer = Lexer("array[1..3] of var int")
+        parser = Parser(lexer)
+        node = array_var_type(parser)
+
+        @test node.range.start_value == 1
+        @test node.range.end_value == 3
+        @test node.type.name == int
+
+
+        lexer = Lexer("array[1..3] of var 1..6")
+        parser = Parser(lexer)
+        node = array_var_type(parser)
+
+        @test node.range.start_value == 1
+        @test node.range.end_value == 3
+        @test node.type.type == int
+        @test node.type.start_value == 1
+        @test node.type.end_value == 6
+
+        lexer = Lexer("array[1..3] of var {1,5,6}")
+        parser = Parser(lexer)
+        node = array_var_type(parser)
+
+        @test node.range.start_value == 1
+        @test node.range.end_value == 3
+        @test node.type.type == int
+        @test node.type.value == [1,5,6]
+    end
+
+
+
+    @testset "var_decl_item" begin
+        lexer = Lexer("var int: X_INTRODUCED_2_;")
+        parser = Parser(lexer)
+        node = var_decl_item(parser)
+        @test node.type.name == int
+        @test node.id == "X_INTRODUCED_2_"
+        @test node.annotations === nothing
+        @test node.annotations_values === nothing
+
+
+
+        lexer = Lexer("var int: X_INTRODUCED_2_::output_var;")
+        parser = Parser(lexer)
+        node = var_decl_item(parser)
+        @test node.type.name == int
+        @test node.id == "X_INTRODUCED_2_"
+        @test node.annotations.annotationsList[1].id == "output_var"
+        @test node.annotations.annotationsList[1].value == []
+        @test node.annotations_values === nothing
+
+
+        lexer = Lexer("var float: X_INTRODUCED_2_::output_var;")
+        parser = Parser(lexer)
+        node = var_decl_item(parser)
+        @test node.type.name == float
+        @test node.id == "X_INTRODUCED_2_"
+        @test node.annotations.annotationsList[1].id == "output_var"
+        @test node.annotations.annotationsList[1].value == []
+        @test node.annotations_values === nothing
+
+
+        lexer = Lexer("var bool: X_INTRODUCED_2_::output_var;")
+        parser = Parser(lexer)
+        node = var_decl_item(parser)
+        @test node.type.name == bool
+        @test node.id == "X_INTRODUCED_2_"
+        @test node.annotations.annotationsList[1].id == "output_var"
+        @test node.annotations.annotationsList[1].value == []
+        @test node.annotations_values === nothing
+
+        lexer = Lexer("var 0..5: X_INTRODUCED_2_::output_var;")
+        parser = Parser(lexer)
+        node = var_decl_item(parser)
+        @test node.type.type == int
+        @test node.id == "X_INTRODUCED_2_"
+        @test node.annotations.annotationsList[1].id == "output_var"
+        @test node.annotations.annotationsList[1].value == []
+        @test node.annotations_values === nothing
+        @test node.type.start_value == 0
+        @test node.type.end_value == 5
+
+        lexer = Lexer("var {0,4,2,5}: X_INTRODUCED_2_::output_var;")
+        parser = Parser(lexer)
+        node = var_decl_item(parser)
+        @test node.type.type == int
+        @test node.id == "X_INTRODUCED_2_"
+        @test node.annotations.annotationsList[1].id == "output_var"
+        @test node.annotations.annotationsList[1].value == []
+        @test node.annotations_values === nothing
+        @test node.type.value == [0,4,2,5]
     end
 
 end
