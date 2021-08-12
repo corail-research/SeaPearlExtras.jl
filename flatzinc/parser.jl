@@ -203,8 +203,47 @@ function array_literal(parser::Parser)
     return ArrayLiteral(values)
 end
 
+function expr(parser::Parser)
+    if (parser.currentToken.type == LB)
+        return array_literal(parser)
+    else
+        return basic_expr(parser::Parser)
+    end
+end
 
 
+function annotations(parser::Parser)
+     annotationsList = []
+     while parser.currentToken.type == DOUBLE_COLON
+        eat(parser, DOUBLE_COLON)
+        push!(annotationsList, annotation(parser))
+     end
+     return Annotations(annotationsList)
+end
+
+function annotation(parser::Parser)
+    id = parser.currentToken.value
+    value = []
+    eat(parser, ID)
+    if (parser.currentToken.type == LP)
+        eat(parser, LP)
+        push!(value, ann_exp(parser))
+        while (parser.currentToken.type == COMMA)
+            eat(parser, COMME)
+            push!(value, ann_exp(parser))
+        end
+        eat(parser, RP)
+    end
+    return Annotation(id, value)
+end
+
+function ann_exp(parser::Parser)
+    if (parser.currentToken.type == ID)
+        return annotation(parser)
+    else 
+        return expr(parser)
+    end
+end
 
 
 

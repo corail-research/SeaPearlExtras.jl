@@ -589,4 +589,22 @@ end
         @test node.values[4] == BasicLiteralExpr(bool, true)    
     end
 
+    @testset "annotations" begin
+        lexer = Lexer(":: output_array([1..3])")
+        parser = Parser(lexer)
+        node = annotations(parser)
+        @test length(node.annotationsList) == 1   
+        @test node.annotationsList[1].id == "output_array" 
+        @test typeof(node) == Annotations
+        @test typeof(node.annotationsList[1]) == Annotation
+        @test typeof(node.annotationsList[1].value[1]) == ArrayLiteral
+        @test typeof(node.annotationsList[1].value[1].values[1]) == BasicLiteralExpr
+        @test typeof(node.annotationsList[1].value[1].values[1].value) == Domain
+
+
+        @test node.annotationsList[1].value[1].values[1].type == set
+        @test node.annotationsList[1].value[1].values[1].value.type == INT_CONST
+        @test node.annotationsList[1].value[1].values[1].value.value == [1,2,3]
+    end
+
 end

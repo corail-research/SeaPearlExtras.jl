@@ -33,6 +33,20 @@ struct ArrayLiteral <: AST
 end
 
 
+struct Annotation <: AST
+    id
+    value
+end
+
+
+
+struct Annotations <: AST
+    annotationsList::Array{Annotation}
+end
+
+
+
+
 
 struct VarUnbounded <: VAR
     id::String
