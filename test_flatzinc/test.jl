@@ -742,7 +742,46 @@ end
         @test node.expressions[1].value == "mesvariables"
         @test node.annotations.annotationsList[1].id == "oups"
         @test node.annotations.annotationsList[1].value == []
+
+        lexer = Lexer("constraint int_lin_le(X_INTRODUCED_20_,[v_9,v_19],0);")
+        parser = Parser(lexer)
+        node = constraint_expr(parser)
+        @test node.id == "int_lin_le"
+        @test node.expressions[1].type == ID
+        @test node.expressions[1].value == "X_INTRODUCED_20_"
+        @test node.expressions[2].values[1].type == ID
+        @test node.expressions[2].values[1].value == "v_9"
+        @test node.expressions[2].values[2].type == ID
+        @test node.expressions[2].values[2].value == "v_19"
+        @test node.expressions[3].type == INT_CONST
+        @test node.expressions[3].value == 0
+        @test node.annotations.annotationsList == []
+
     end
 
+    @testset "solve_item" begin
+        lexer = Lexer("solve  minimize X_INTRODUCED_2_;")
+        parser = Parser(lexer)
+        node = solve_item(parser)
 
+        @test node.annotations.annotationsList == []
+        @test node.expressions.type == ID
+        @test node.expressions.value == "X_INTRODUCED_2_"
+
+        lexer = Lexer("solve :: int_search(var_array,first_fail,indomain,complete) satisfy;")
+        parser = Parser(lexer)
+        node = solve_item(parser)
+
+        @test node.annotations.annotationsList[1].id == "int_search"
+        @test node.annotations.annotationsList[1].value[1].id == "var_array"
+        @test node.annotations.annotationsList[1].value[1].value == []
+        @test node.annotations.annotationsList[1].value[2].id == "first_fail"
+        @test node.annotations.annotationsList[1].value[2].value == []
+        @test node.annotations.annotationsList[1].value[3].id == "indomain"
+        @test node.annotations.annotationsList[1].value[3].value == []
+        @test node.annotations.annotationsList[1].value[4].id == "complete"
+        @test node.annotations.annotationsList[1].value[4].value == []
+
+
+    end
 end

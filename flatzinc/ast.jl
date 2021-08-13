@@ -82,3 +82,17 @@ struct Constraint <: AST
     expressions
     annotations
 end
+
+struct Satisfy <: AST
+    annotations
+end
+
+struct Minimize <: AST
+    annotations
+    expressions
+end
+
+struct Maximize <: AST
+    annotations
+    expressions
+end

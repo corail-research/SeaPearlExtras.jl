@@ -229,7 +229,7 @@ function annotation(parser::Parser)
         eat(parser, LP)
         push!(value, ann_exp(parser))
         while (parser.currentToken.type == COMMA)
-            eat(parser, COMME)
+            eat(parser, COMMA)
             push!(value, ann_exp(parser))
         end
         eat(parser, RP)
@@ -439,9 +439,31 @@ function constraint_expr(parser::Parser)
         eat(parser, COMMA)
         push!(expressions, expr(parser))
     end
-    println(parser.currentToken)
+    eat(parser, RP)
+
     anns = annotations(parser)
     eat(parser, SEMICOLON)
     return Constraint(id, expressions, anns)
 
+end
+
+function solve_item(parser::Parser)
+    eat(parser, solve)
+    anns = annotations(parser)
+    if (parser.currentToken.type == satisfy)
+        eat(parser, satisfy)
+        eat(parser, SEMICOLON)
+        return Satisfy(anns)
+        
+    elseif (parser.currentToken.type == minimize)
+        eat(parser, minimize)
+        expression = basic_expr(parser)
+        eat(parser, SEMICOLON)
+        return Minimize(anns, expression)
+    else
+        eat(parser, maximize)
+        expression = basic_expr(parser)
+        eat(parser, SEMICOLON)
+        return Maximize(anns, expression)
+    end
 end
