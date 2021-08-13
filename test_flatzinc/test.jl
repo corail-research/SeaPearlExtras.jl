@@ -1,4 +1,4 @@
-using Base: parameter_upper_bound, Bool
+using Base: parameter_upper_bound, Bool, Float16
 using Test
 include("../flatzinc/lexer.jl")
 include("../flatzinc/parser.jl")
@@ -601,5 +601,75 @@ end
         @test node.annotations_values === nothing
         @test node.type.value == [0,4,2,5]
     end
+
+
+
+    @testset "basic_pred_param_type" begin
+        lexer = Lexer("bool")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.name == bool
+
+        lexer = Lexer("int")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.name == int
+
+        lexer = Lexer("float")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.name == float
+
+        lexer = Lexer("1..5")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.type == int
+        @test node.start_value == 1
+        @test node.end_value == 5
+
+
+        lexer = Lexer("1.2..5.0")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.type == float
+        @test node.start_value == 1.2
+        @test node.end_value == 5.0
+
+        lexer = Lexer("{1,4,5}")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.type == int
+        @test node.value == [1,4,5]
+
+
+        lexer = Lexer("set of {1,4,5}")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.type == int
+        @test node.value == [1,4,5]
+
+
+
+        lexer = Lexer("set of 1..5")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.type == int
+        @test node.value == [1,2,3,4,5]
+
+        lexer = Lexer("var set of int")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.type == set
+        @test node.id ==  ""
+        @test node.annotations == []
+        @test node.annotations_values == []
+
+        lexer = Lexer("var bool")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.name == bool
+
+    end
+
 
 end

@@ -293,6 +293,78 @@ function var_decl_item(parser::Parser)
 end
                 
 
+function basic_pred_param_type(parser::Parser)
+    if parser.currentToken.type == INT_CONST
+        start_value = int_literal(parser)
+        eat(parser, PP)
+        end_value = int_literal(parser)
+        return Interval(int, start_value, end_value)
+    elseif parser.currentToken.type == REAL_CONST
+        start_value = float_literal(parser)
+        eat(parser, PP)
+        end_value = float_literal(parser)
+        return Interval(float, start_value, end_value)
+    elseif parser.currentToken.type == LCB
+        values = []
+        eat(parser, LCB)
+        push!(values, int_literal(parser))
+        while (parser.currentToken.type == COMMA)
+            eat(parser, COMMA)
+            push!(values, int_literal(parser))
+        end
+        eat(parser, RCB)
+        return Domain(int, values)
+    elseif (parser.currentToken.type == bool)
+        eat(parser, bool)
+        return BasicType(bool)
+    elseif (parser.currentToken.type == int)
+        eat(parser, int)
+        return BasicType(int)
+    elseif (parser.currentToken.type == float)
+        eat(parser, float)
+        return BasicType(float)
+    elseif (parser.currentToken.type == set)
+        eat(parser, set)
+        eat(parser, of)
+        if (parser.currentToken.type == int)
+            eat(parser, int)
+            return Domain(int, nothing)
+        elseif (parser.currentToken.type == INT_CONST)
+             start_value = int_literal(parser)
+             eat(parser, PP)
+             end_value = int_literal(parser)
+             return Domain(int, start_value:end_value)
+        else
+            eat(parser, LCB)
+            values = []
+            push!(values, int_literal(parser))
+            while (parser.currentToken.type == COMMA)
+                eat(parser, COMMA)
+                push!(values, int_literal(parser))
+            end
+            eat(parser, RCB)
+            return Domain(int, values)
+        end
+    else 
+        copyLexer = Lexer(parser.lexer.text[parser.lexer.current_pos:length(parser.lexer.text)])
+        token = getNextToken(copyLexer)
+        token = getNextToken(copyLexer)
+        token = getNextToken(copyLexer)
+        if token.type == int
+            eat(parser, var)
+            eat(parser, set)
+            eat(parser, of)
+            eat(parser, int)
+            return VarDeclItem(set, "", [], [])
+        else
+            return basic_var_type(parser)
+        end
+    end
+
+        
+end
+
+
 
 function parameter(parser::Parser)
     type = nothing
