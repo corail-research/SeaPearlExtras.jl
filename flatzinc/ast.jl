@@ -115,3 +115,8 @@ end
 struct PredIndexSet <: AST
     id
 end
+
+struct ArrayPredParamType <: AST
+    type
+    index
+end

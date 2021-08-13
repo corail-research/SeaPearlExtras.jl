@@ -791,5 +791,7 @@ end
         @test node.id == "fzn_all_different_int"
         @test node.items[1].type.type.name == int
         @test node.items[1].type.index.id == int
+        @test node.items[1].id == "x"
+
     end
 end

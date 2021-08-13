@@ -486,7 +486,7 @@ function pred_param_type(parser::Parser)
         eat(parser, RB)
         eat(parser, of)
         type = basic_pred_param_type(parser)
-        return BasicPredParamType(type, index)
+        return ArrayPredParamType(type, index)
     else
         return basic_pred_param_type(parser)
     end
