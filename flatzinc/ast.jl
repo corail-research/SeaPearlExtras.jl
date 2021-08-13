@@ -77,37 +77,8 @@ struct ParDeclItem <: AST
     expression
 end
 
-
-struct VarUnbounded <: VAR
-    id::String
-    type::TokenType
-    annotation
-end
-
-
-struct VarInterval <: VAR
-    id::String
-    annotation
-    type::TokenType
-    min
-    max
-end
-
-struct VarDomain <: VAR
-    id::String
-    annotation
-    domain
-end
-
-
-struct paramType <: PARAM
+struct Constraint <: AST
     id
-    type::TokenType
-    value
-end
-
-struct arrayNode <: AST
-    start_index
-    end_index
-    variable_node 
+    expressions
+    annotations
 end

@@ -427,3 +427,21 @@ function par_decl_item(parser::Parser)
 
     return ParDeclItem(type, id, expression)
 end
+
+function constraint_expr(parser::Parser)
+    eat(parser, constraint)
+    id = parser.currentToken.value
+    eat(parser, ID)
+    eat(parser, LP)
+    expressions = []
+    push!(expressions, expr(parser))
+    while (parser.currentToken.type == COMMA)
+        eat(parser, COMMA)
+        push!(expressions, expr(parser))
+    end
+    println(parser.currentToken)
+    anns = annotations(parser)
+    eat(parser, SEMICOLON)
+    return Constraint(id, expressions, anns)
+
+end

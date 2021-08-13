@@ -733,4 +733,16 @@ end
 
     end
 
+    @testset "constraint_expr" begin
+        lexer = Lexer("constraint fzn_all_different_int(mesvariables)::oups;")
+        parser = Parser(lexer)
+        node = constraint_expr(parser)
+        @test node.id == "fzn_all_different_int"
+        @test node.expressions[1].type == ID
+        @test node.expressions[1].value == "mesvariables"
+        @test node.annotations.annotationsList[1].id == "oups"
+        @test node.annotations.annotationsList[1].value == []
+    end
+
+
 end
