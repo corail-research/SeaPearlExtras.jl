@@ -642,6 +642,11 @@ end
         @test node.value == [1,4,5]
 
 
+        lexer = Lexer("set of int")
+        parser = Parser(lexer)
+        node = basic_pred_param_type(parser)
+        @test node.name == "set of int"
+
         lexer = Lexer("set of {1,4,5}")
         parser = Parser(lexer)
         node = basic_pred_param_type(parser)
@@ -660,14 +665,55 @@ end
         parser = Parser(lexer)
         node = basic_pred_param_type(parser)
         @test node.type == set
-        @test node.id ==  ""
+        @test node.id === ""
         @test node.annotations == []
         @test node.annotations_values == []
+
+
 
         lexer = Lexer("var bool")
         parser = Parser(lexer)
         node = basic_pred_param_type(parser)
         @test node.name == bool
+
+    end
+
+
+
+    @testset "par_type" begin
+        lexer = Lexer("bool")
+        parser = Parser(lexer)
+        node = par_type(parser)
+        @test node.name == bool
+
+        lexer = Lexer("int")
+        parser = Parser(lexer)
+        node = par_type(parser)
+        @test node.name == int
+
+        lexer = Lexer("float")
+        parser = Parser(lexer)
+        node = par_type(parser)
+        @test node.name == float
+
+        lexer = Lexer("set of int")
+        parser = Parser(lexer)
+        node = par_type(parser)
+        @test node.name == "set of int"
+
+        lexer = Lexer("array[1..4] of bool")
+        parser = Parser(lexer)
+        node = par_type(parser)
+        @test node.index.start_value == 1
+        @test node.index.end_value == 4
+        @test node.type.name== bool
+
+        lexer = Lexer("array[1..4] of set of int")
+        parser = Parser(lexer)
+        node = par_type(parser)
+        @test node.index.start_value == 1
+        @test node.index.end_value == 4
+        @test node.type.name == "set of int"
 
     end
 

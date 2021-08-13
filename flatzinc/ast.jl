@@ -7,6 +7,10 @@ struct BasicType <: AST
     name
 end
 
+struct BasicParType <: AST
+    name
+end
+
 struct Interval <: AST
     type 
     start_value
@@ -58,6 +62,10 @@ struct VarDeclItem<:AST
     annotations_values
 end
 
+struct ArrayParType<:AST
+    type
+    index
+end
 
 
 

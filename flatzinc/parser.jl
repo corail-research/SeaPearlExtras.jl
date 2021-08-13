@@ -316,19 +316,19 @@ function basic_pred_param_type(parser::Parser)
         return Domain(int, values)
     elseif (parser.currentToken.type == bool)
         eat(parser, bool)
-        return BasicType(bool)
+        return BasicParType(bool)
     elseif (parser.currentToken.type == int)
         eat(parser, int)
-        return BasicType(int)
+        return BasicParType(int)
     elseif (parser.currentToken.type == float)
         eat(parser, float)
-        return BasicType(float)
+        return BasicParType(float)
     elseif (parser.currentToken.type == set)
         eat(parser, set)
         eat(parser, of)
         if (parser.currentToken.type == int)
             eat(parser, int)
-            return Domain(int, nothing)
+            return BasicParType("set of int")
         elseif (parser.currentToken.type == INT_CONST)
              start_value = int_literal(parser)
              eat(parser, PP)
@@ -359,12 +359,41 @@ function basic_pred_param_type(parser::Parser)
         else
             return basic_var_type(parser)
         end
-    end
+    end     
+end
 
-        
+function basic_par_type(parser::Parser)
+    if (parser.currentToken.type == int)
+        eat(parser, int)
+        return BasicParType(int)
+    elseif (parser.currentToken.type == float)
+            eat(parser, float)
+            return BasicParType(float)
+    elseif (parser.currentToken.type == bool)
+            eat(parser, bool)
+            return BasicParType(bool)
+    else 
+        eat(parser, set)
+        eat(parser, of)
+        eat(parser, int)
+        return BasicParType("set of int")
+    end
 end
 
 
+function par_type(parser::Parser)
+    if (parser.currentToken.type != array)
+        return basic_par_type(parser)
+    else
+        eat(parser, array)
+        eat(parser, LB)
+        index = index_set(parser)
+        eat(parser, RB)
+        eat(parser, of)
+        type = basic_par_type(parser)
+        return ArrayParType(type, index)
+    end
+end
 
 function parameter(parser::Parser)
     type = nothing
