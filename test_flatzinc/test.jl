@@ -239,42 +239,6 @@ end
 
 @testset "Parser" begin
 
-    @testset "parameter statement" begin
-        lexer = Lexer("bool: allo = true;")
-        parser = Parser(lexer)
-        node = parameter(parser)
-        @test node.id == "allo"
-        @test node.type == bool 
-        @test node.value == true
-    end
-
-    @testset "parameter statement" begin
-        lexer = Lexer("int: allo = 45;")
-        parser = Parser(lexer)
-        node = parameter(parser)
-        @test node.id == "allo"
-        @test node.type == int
-        @test node.value == 45
-    end
-
-    @testset "parameter statement" begin
-        lexer = Lexer("float: allo = 4.33;")
-        parser = Parser(lexer)
-        node = parameter(parser)
-        @test node.id == "allo"
-        @test node.type == float
-        @test node.value == 4.33
-    end
-
-    @testset "parameter statement" begin
-        lexer = Lexer("set of int: allo = { 4,5,9};")
-        parser = Parser(lexer)
-        node = parameter(parser)
-        @test node.id == "allo"
-        @test node.type == set
-        @test node.value == [4,5,9]
-    end
-
 
     @testset "basic_var_type" begin
         lexer = Lexer("var bool")
