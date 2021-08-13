@@ -739,5 +739,34 @@ end
         @test node.values[3].type == INT_CONST
     end
 
+    @testset "par_decl_item" begin
+        lexer = Lexer("bool: allo = true;")
+        parser = Parser(lexer)
+        node = par_decl_item(parser)
+        @test node.type.name == bool
+        @test node.id == "allo"
+        @test node.expression.type == bool
+        @test node.expression.value == true
+
+
+        lexer = Lexer("array[1..4] of int: allo = [2,5,2,5];")
+        parser = Parser(lexer)
+        node = par_decl_item(parser)
+
+        @test node.type.type.name ==  int
+        @test node.type.index.start_value == 1        
+        @test node.type.index.end_value == 4
+        @test node.id == "allo"
+        @test node.expression.values[1].type == INT_CONST
+        @test node.expression.values[1].value == 2
+        @test node.expression.values[2].type == INT_CONST
+        @test node.expression.values[2].value == 5
+        @test node.expression.values[3].type == INT_CONST
+        @test node.expression.values[3].value == 2
+        @test node.expression.values[4].type == INT_CONST
+        @test node.expression.values[4].value == 5
+
+
+    end
 
 end

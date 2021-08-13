@@ -71,6 +71,12 @@ struct ParArrayLiteral <: AST
     values
 end
 
+struct ParDeclItem <: AST
+    type
+    id
+    expression
+end
+
 
 struct VarUnbounded <: VAR
     id::String

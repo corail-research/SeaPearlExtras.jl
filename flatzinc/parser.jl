@@ -408,6 +408,26 @@ function par_array_literal(parser::Parser)
     return ParArrayLiteral(values)
 end
 
+function par_expr(parser::Parser)
+    if (parser.currentToken.type == LB)
+        return par_array_literal(parser)
+    else
+        return basic_literal_expr(parser)
+    end
+end
+
+function par_decl_item(parser::Parser)
+    type = par_type(parser)
+    eat(parser, COLON)
+    id = parser.currentToken.value
+    eat(parser, ID)
+    eat(parser, EQUAL)
+    expression = par_expr(parser)
+    eat(parser, SEMICOLON)
+
+    return ParDeclItem(type, id, expression)
+end
+
 
 
 
