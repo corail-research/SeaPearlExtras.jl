@@ -67,6 +67,9 @@ struct ArrayParType<:AST
     index
 end
 
+struct ParArrayLiteral <: AST
+    values
+end
 
 
 struct VarUnbounded <: VAR

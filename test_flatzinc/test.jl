@@ -714,7 +714,29 @@ end
         @test node.index.start_value == 1
         @test node.index.end_value == 4
         @test node.type.name == "set of int"
+    end
 
+    @testset "par_array_literal" begin
+        lexer = Lexer("[true, true, false]")
+        parser = Parser(lexer)
+        node = par_array_literal(parser)
+        @test node.values[1].value == true
+        @test node.values[2].value == true
+        @test node.values[3].value == false
+        @test node.values[1].type == bool
+        @test node.values[2].type == bool
+        @test node.values[3].type == bool
+
+
+        lexer = Lexer("[1, 4, 5]")
+        parser = Parser(lexer)
+        node = par_array_literal(parser)
+        @test node.values[1].value == 1
+        @test node.values[2].value == 4
+        @test node.values[3].value == 5
+        @test node.values[1].type == INT_CONST
+        @test node.values[2].type == INT_CONST
+        @test node.values[3].type == INT_CONST
     end
 
 

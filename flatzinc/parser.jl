@@ -395,6 +395,22 @@ function par_type(parser::Parser)
     end
 end
 
+
+function par_array_literal(parser::Parser)
+    eat(parser, LB)
+    values = []
+    push!(values, basic_literal_expr(parser))
+    while (parser.currentToken.type == COMMA)
+        eat(parser, COMMA)
+        push!(values, basic_literal_expr(parser))
+    end
+    eat(parser, RB)
+    return ParArrayLiteral(values)
+end
+
+
+
+
 function parameter(parser::Parser)
     type = nothing
     if (parser.currentToken.type != array && parser.currentToken.type != set)
