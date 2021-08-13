@@ -96,3 +96,22 @@ struct Maximize <: AST
     annotations
     expressions
 end
+
+struct BasicPredParamType <: AST
+    type
+    index
+end
+
+struct PredParamType <: AST
+    type
+    id
+end
+
+struct Predicate <: AST
+    id
+    items
+end
+
+struct PredIndexSet <: AST
+    id
+end

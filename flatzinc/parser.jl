@@ -467,3 +467,53 @@ function solve_item(parser::Parser)
         return Maximize(anns, expression)
     end
 end
+
+
+function pred_index_set(parser::Parser)
+    if parser.currentToken.type == int
+        eat(parser, int)
+        return PredIndexSet(int)
+    else 
+        return PredIndexSet(index_set(parser))
+    end
+end
+
+function pred_param_type(parser::Parser)
+    if (parser.currentToken.type == array)
+        eat(parser, array)
+        eat(parser, LB)
+        index = pred_index_set(parser)
+        eat(parser, RB)
+        eat(parser, of)
+        type = basic_pred_param_type(parser)
+        return BasicPredParamType(type, index)
+    else
+        return basic_pred_param_type(parser)
+    end
+end
+
+function predicate_item(parser::Parser)
+    eat(parser, predicate)
+    id = parser.currentToken.value
+    eat(parser, ID)
+    eat(parser, LP)
+    items = []
+    type = pred_param_type(parser)
+    eat(parser, COLON)
+    type_id = parser.currentToken.value
+    eat(parser, ID)
+    push!(items, PredParamType(type, type_id))
+    while (parser.currentToken.type == COMMA)
+        eat(parser, COMMA)
+        type = pred_param_type(parser)
+        eat(parser, COLON)
+        type_id = parser.currentToken.value
+        eat(parser, ID)
+        push!(items, PredParamType(type, type_id))
+    end
+    eat(parser, RP)
+    eat(parser, SEMICOLON)
+    return Predicate(id, items)
+end
+
+

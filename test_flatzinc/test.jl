@@ -781,7 +781,15 @@ end
         @test node.annotations.annotationsList[1].value[3].value == []
         @test node.annotations.annotationsList[1].value[4].id == "complete"
         @test node.annotations.annotationsList[1].value[4].value == []
+    end
 
 
+    @testset "predicate_item" begin
+        lexer = Lexer("predicate fzn_all_different_int(array [int] of var int: x); ")
+        parser = Parser(lexer)
+        node = predicate_item(parser)
+        @test node.id == "fzn_all_different_int"
+        @test node.items[1].type.type.name == int
+        @test node.items[1].type.index.id == int
     end
 end
