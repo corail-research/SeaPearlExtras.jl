@@ -794,4 +794,25 @@ end
         @test node.items[1].id == "x"
 
     end
+
+    @testset "model" begin
+        lexer = Lexer("predicate fzn_all_different_int(array [int] of var int: x);
+        var 1..3: X_INTRODUCED_0_;
+        var 1..3: X_INTRODUCED_1_;
+        var 1..3: X_INTRODUCED_2_;
+        var 2.5..2.5: varr;
+        array [1..3] of var int: mesvariables:: output_array([1..3]) = [X_INTRODUCED_0_,X_INTRODUCED_1_,X_INTRODUCED_2_];
+        constraint fzn_all_different_int(mesvariables);
+        solve  minimize X_INTRODUCED_2_;")
+        parser = Parser(lexer)
+        node = model(parser)
+        @test length(node.predicates) == 1
+        @test length(node.parameters) == 0
+        @test length(node.variables) == 5
+        @test length(node.constraints) == 1
+        @test length(node.solves) == 1
+
+
+        println(node.solves[1])
+    end
 end

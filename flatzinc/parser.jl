@@ -517,3 +517,44 @@ function predicate_item(parser::Parser)
 end
 
 
+function verifyArrayOfVariable(parser::Parser)
+    copyParser = Parser(Lexer(parser.lexer.text[parser.lexer.current_pos:length(parser.lexer.text)]))
+    eat(copyParser, array)
+    eat(copyParser, LB)
+    index_set(copyParser)
+    eat(copyParser, RB)
+    eat(copyParser, of)
+    if (copyParser.currentToken.type == var)
+        return true
+    end
+    return false
+end
+
+function model(parser::Parser)
+    predicates = []
+    parameters = []
+    variables = []
+    constraints = []
+    solves = []
+
+    while (parser.currentToken.type == predicate)
+        push!(predicates, predicate_item(parser))
+    end
+
+    while (parser.currentToken.type != var || (parser.currentToken.type == array && !verifyArrayOfVariable(parser)))
+        push!(parameters, par_decl_item(parser))
+    end
+
+    while (!(parser.currentToken.type == constraint))
+        push!(variables, var_decl_item(parser))
+    end
+    
+    while (parser.currentToken.type == constraint)
+        push!(constraints, constraint_expr(parser))
+    end
+
+    push!(solves, solve_item(parser))
+
+    return Model(predicates, parameters, variables, constraints, solves)
+
+end

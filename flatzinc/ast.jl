@@ -120,3 +120,12 @@ struct ArrayPredParamType <: AST
     type
     index
 end
+
+struct Model
+    predicates
+    parameters
+    variables
+    constraints
+    solves
+end
+
