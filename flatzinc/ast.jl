@@ -1,7 +1,5 @@
 include("token.jl")
 abstract type AST end
-abstract type VAR  <: AST end
-abstract type PARAM  <: AST end
 
 struct BasicType <: AST
     name
@@ -121,7 +119,7 @@ struct ArrayPredParamType <: AST
     index
 end
 
-struct Model
+struct Model <: AST
     predicates
     parameters
     variables

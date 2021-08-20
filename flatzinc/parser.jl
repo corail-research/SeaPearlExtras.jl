@@ -530,7 +530,7 @@ function verifyArrayOfVariable(parser::Parser)
     return false
 end
 
-function model(parser::Parser)
+function read_model(parser::Parser)
     predicates = []
     parameters = []
     variables = []

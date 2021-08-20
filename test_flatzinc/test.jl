@@ -2,6 +2,7 @@ using Base: parameter_upper_bound, Bool, Float16
 using Test
 include("../flatzinc/lexer.jl")
 include("../flatzinc/parser.jl")
+include("../flatzinc/interpreter.jl")
 
 @testset "Lexer" begin
 
@@ -805,14 +806,24 @@ end
         constraint fzn_all_different_int(mesvariables);
         solve  minimize X_INTRODUCED_2_;")
         parser = Parser(lexer)
-        node = model(parser)
+        node = read_model(parser)
         @test length(node.predicates) == 1
         @test length(node.parameters) == 0
         @test length(node.variables) == 5
         @test length(node.constraints) == 1
         @test length(node.solves) == 1
+    end
 
 
-        println(node.solves[1])
+    @testset "create_variable" begin
+        model = "predicate fzn_all_different_int(array [int] of var int: x);
+        var 1..3: X_INTRODUCED_0_;
+        var 1..3: X_INTRODUCED_1_;
+        var 1..3: X_INTRODUCED_2_;
+        array [1..3] of var int: mesvariables:: output_array([1..3]) = [X_INTRODUCED_0_,X_INTRODUCED_1_,X_INTRODUCED_2_];
+        constraint fzn_all_different_int(mesvariables);
+        solve  minimize X_INTRODUCED_2_;"
+        interpreter = create_model(model)
+        println(interpreter.GLOBAL_VARIABLE)
     end
 end
