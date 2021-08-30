@@ -813,8 +813,9 @@ end
         @test length(node.constraints) == 1
         @test length(node.solves) == 1
     end
+end
 
-
+@testset "Interpreter" begin
     @testset "create_variable" begin
         model = "predicate fzn_all_different_int(array [int] of var int: x);
         var 1..3: X_INTRODUCED_0_;
@@ -824,6 +825,13 @@ end
         constraint fzn_all_different_int(mesvariables);
         solve  minimize X_INTRODUCED_2_;"
         interpreter = create_model(model)
-        println(interpreter.GLOBAL_VARIABLE)
+        @test length(interpreter.GLOBAL_VARIABLE) == 4
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_0_"].domain.min.value == 1
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_0_"].domain.max.value == 3
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.min.value == 1
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_1_"].domain.max.value == 3
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.min.value == 1
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.max.value == 3
+        @test interpreter.GLOBAL_VARIABLE["mesvariables"] == ["X_INTRODUCED_0_", "X_INTRODUCED_1_", "X_INTRODUCED_2_"]
     end
 end
