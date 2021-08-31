@@ -832,6 +832,9 @@ end
         @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_1_"].domain.max.value == 3
         @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.min.value == 1
         @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.max.value == 3
-        @test interpreter.GLOBAL_VARIABLE["mesvariables"] == ["X_INTRODUCED_0_", "X_INTRODUCED_1_", "X_INTRODUCED_2_"]
+
+        @test length(interpreter.GLOBAL_CONSTRAINT) == 1
+        @test typeof(interpreter.GLOBAL_CONSTRAINT[1]) == SeaPearl.AllDifferent
+
     end
 end

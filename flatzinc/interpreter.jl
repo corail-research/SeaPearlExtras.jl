@@ -79,10 +79,13 @@ function create_constraint(interpreter::Interpreter, constraint, trailer, m)
         end
         new_constraint = SeaPearl.AllDifferent(variables, trailer)
         push!(m.constraints, new_constraint)
-        println(m.constraints)
+        push!(interpreter.GLOBAL_CONSTRAINT, new_constraint)
     end
 end
 
+function create_solve(interpreter::Interpreter, constraint, trailer, m)
+    
+end
 
 
 
