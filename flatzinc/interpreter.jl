@@ -4,8 +4,8 @@ using SeaPearl
 mutable struct Interpreter
     node::AST
     GLOBAL_VARIABLE::Dict
-    GLOBAL_CONSTRAINT::Dict
-    Interpreter(node) = new(node, Dict())
+    GLOBAL_CONSTRAINT::Array
+    Interpreter(node) = new(node, Dict(), [])
 end
 
 function error(message)
@@ -46,7 +46,7 @@ function create_variable(interpreter::Interpreter, node::AST, trailer, m)
             if (typeof(variable_type) == Interval)
                 if type.type == int
                     variable_name = node.annotations_values.values[i].value
-                    push!(arrayVariables, variable_name)
+                    push!(arrayVariables,  variable_name)
                 elseif variable_type == float
                     error("Float are not permited")
                 end
@@ -55,19 +55,35 @@ function create_variable(interpreter::Interpreter, node::AST, trailer, m)
             elseif (typeof(variable_type) == BasicType)
                 if (variable_type.name == int)
                     variable_name = node.annotations_values.values[i].value
-                    push!(arrayVariables, variable_name)
+                    push!(arrayVariables,  variable_name)
                 elseif (variable_type.name == bool)
                     variable_name = node.annotations_values.values[i].value
-                    push!(arrayVariables, variable_name)
+                    push!(arrayVariables,  variable_name)
                 else
                     error("Float are not permited")
                 end
             end
         end
         interpreter.GLOBAL_VARIABLE[node.id] = arrayVariables
-
     end
 end
+
+
+function create_constraint(interpreter::Interpreter, constraint, trailer, m)
+    if (occursin("all_different", constraint.id))
+        variables = SeaPearl.AbstractIntVar[]
+        #new_constraint = SeaPearl.AllDifferent(temps, trailer)
+        println(constraint)
+        for var in interpreter.GLOBAL_VARIABLE[constraint.expressions[1].value]
+            push!(variables, interpreter.GLOBAL_VARIABLE[var])
+        end
+        new_constraint = SeaPearl.AllDifferent(variables, trailer)
+        push!(m.constraints, new_constraint)
+        println(m.constraints)
+    end
+end
+
+
 
 
 function create_model(model)
@@ -79,6 +95,9 @@ function create_model(model)
     m = SeaPearl.CPModel(trailer)
     for variable in node.variables
         create_variable(interpreter, variable ,trailer, m)
+    end
+    for constraint in node.constraints
+        create_constraint(interpreter, constraint, trailer, m)
     end
     return interpreter
 end
