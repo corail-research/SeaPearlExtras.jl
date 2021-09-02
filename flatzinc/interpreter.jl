@@ -1,5 +1,6 @@
 include("parser.jl")
 using SeaPearl
+    using Pkg
 
 mutable struct Interpreter
     node::AST
@@ -73,18 +74,27 @@ function create_constraint(interpreter::Interpreter, constraint, trailer, m)
     if (occursin("all_different", constraint.id))
         variables = SeaPearl.AbstractIntVar[]
         #new_constraint = SeaPearl.AllDifferent(temps, trailer)
-        println(constraint)
         for var in interpreter.GLOBAL_VARIABLE[constraint.expressions[1].value]
             push!(variables, interpreter.GLOBAL_VARIABLE[var])
         end
         new_constraint = SeaPearl.AllDifferent(variables, trailer)
-        push!(m.constraints, new_constraint)
+        SeaPearl.addConstraint!(m, new_constraint)
+        #push!(m.constraints, new_constraint)
         push!(interpreter.GLOBAL_CONSTRAINT, new_constraint)
     end
 end
 
-function create_solve(interpreter::Interpreter, constraint, trailer, m)
-    
+function create_solve(interpreter::Interpreter, solve_node, trailer, m)
+    if (typeof(solve_node[1]) == Minimize)
+        variableToMinimize = interpreter.GLOBAL_VARIABLE[solve_node[1].expressions.value]
+        negativeVariable = SeaPearl.IntVar(-variableToMinimize.domain.max.value, -variableToMinimize.domain.min.value, "optimization",trailer)
+        SeaPearl.addVariable!(m, negativeVariable)
+        interpreter.GLOBAL_VARIABLE["optimization"] = negativeVariable
+        SeaPearl.addObjective!(m,negativeVariable) 
+    elseif (typeof(solve_node) == Maximize)
+        SeaPearl.addObjective!(m,solve_node[1].expressions.value) 
+    end
+
 end
 
 
@@ -102,6 +112,11 @@ function create_model(model)
     for constraint in node.constraints
         create_constraint(interpreter, constraint, trailer, m)
     end
+    create_solve(interpreter, node.solves, trailer, m)
+    variableSelection = SeaPearl.MinDomainVariableSelection{false}()
+    status = @time SeaPearl.solve!(m; variableHeuristic=variableSelection,)
+
+    println(m.statistics.solutions[1]["optimization"])
     return interpreter
 end
 
