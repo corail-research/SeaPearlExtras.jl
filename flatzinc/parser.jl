@@ -363,6 +363,7 @@ function basic_pred_param_type(parser::Parser)
 end
 
 function basic_par_type(parser::Parser)
+    println(parser.currentToken.type)
     if (parser.currentToken.type == int)
         eat(parser, int)
         return BasicParType(int)

@@ -58,6 +58,10 @@ end
 function number(lexer::Lexer)
     """Return a (multidigit) integer or float consumed from the input."""
     result = ""
+    if lexer.currentCharacter == '-'
+        result =result*lexer.currentCharacter
+        advance(lexer)
+    end
     while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
         result =result*lexer.currentCharacter
         advance(lexer)
@@ -74,7 +78,6 @@ function number(lexer::Lexer)
             advance(lexer)
             result = result*lexer.currentCharacter
             advance(lexer)
-            println(lexer.currentCharacter)
             while lexer.currentCharacter !== nothing && isdigit(lexer.currentCharacter[1])
                 result =result*lexer.currentCharacter
                 advance(lexer)
@@ -164,7 +167,7 @@ function getNextToken(lexer::Lexer)
         if isletter(lexer.currentCharacter)
             return id(lexer)
         end
-        if (isdigit(lexer.currentCharacter[1]))
+        if (isdigit(lexer.currentCharacter[1]) || lexer.currentCharacter == '-')
             return number(lexer)
         end
         if lexer.currentCharacter == ':'
