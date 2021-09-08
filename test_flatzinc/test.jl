@@ -1,3 +1,4 @@
+using SeaPearl: variablesArray
 using Base: parameter_upper_bound, Bool, Float16
 using Test
 include("../flatzinc/lexer.jl")
@@ -816,8 +817,8 @@ end
 end
 
 @testset "Interpreter" begin
-    @testset "create_variable" begin
-        
+    @testset "create_variable and all_different" begin
+
         model = "predicate fzn_all_different_int(array [int] of var int: x);
         var 1..3: X_INTRODUCED_0_;
         var 1..3: X_INTRODUCED_1_;
@@ -839,4 +840,34 @@ end
         @test typeof(interpreter.GLOBAL_CONSTRAINT[1]) == SeaPearl.AllDifferent
 
     end
+
+    @testset "modele" begin
+
+        model = "predicate fzn_all_different_int(array [int] of var int: x);        
+        var 1..4: X_INTRODUCED_0_;
+        var 3..4: X_INTRODUCED_1_;
+        var 1..4: X_INTRODUCED_2_;
+        var 2..8: X_INTRODUCED_3_:: is_defined_var;
+        array [1..3] of var int: mesvariables:: output_array([1..3]) = [X_INTRODUCED_0_,X_INTRODUCED_1_,X_INTRODUCED_2_];
+        constraint fzn_all_different_int(mesvariables);
+        constraint int_lin_eq([1,1,-1],[X_INTRODUCED_2_,X_INTRODUCED_1_,X_INTRODUCED_3_],0):: defines_var(X_INTRODUCED_3_);
+        solve  minimize X_INTRODUCED_3_;"
+
+        interpreter = create_model(model)
+        @test length(interpreter.GLOBAL_VARIABLE) == 9
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_0_"].domain.min.value == 1
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_0_"].domain.max.value == 4
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_1_"].domain.min.value == 3
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_1_"].domain.max.value == 4
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.min.value == 1
+        @test interpreter.GLOBAL_VARIABLE["X_INTRODUCED_2_"].domain.max.value == 4
+
+        @test length(interpreter.GLOBAL_CONSTRAINT) == 1
+        @test typeof(interpreter.GLOBAL_CONSTRAINT[1]) == SeaPearl.AllDifferent
+
+    end
 end
+
+
+
+

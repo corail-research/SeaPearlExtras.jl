@@ -81,7 +81,42 @@ function create_constraint(interpreter::Interpreter, constraint, trailer, m)
         SeaPearl.addConstraint!(m, new_constraint)
         #push!(m.constraints, new_constraint)
         push!(interpreter.GLOBAL_CONSTRAINT, new_constraint)
+    
+    elseif "int_lin_eq" == constraint.id
+        multiplicator = constraint.expressions[1].values
+        variables_names = constraint.expressions[2].values
+        numbers = []
+        variables = []
+        variablesAssignees = SeaPearl.IntVarView[]
+        for i in 1:length(multiplicator)
+            push!(numbers, multiplicator[i].value)
+            push!(variables, interpreter.GLOBAL_VARIABLE[variables_names[i].value])
+            if (numbers[i] > 0)
+                push!(variablesAssignees, SeaPearl.IntVarViewMul(variables[i], numbers[i], variables_names[i].value*"_view"))
+                SeaPearl.addVariable!(m, variablesAssignees[i])
+                interpreter.GLOBAL_VARIABLE[variables_names[i].value*"_view"] = variablesAssignees[i]
+            elseif (numbers[i] == -1)
+                push!(variablesAssignees, SeaPearl.IntVarViewOpposite(variables[i], variables_names[i].value*"_view"))
+                SeaPearl.addVariable!(m, variablesAssignees[i])
+                interpreter.GLOBAL_VARIABLE[variables_names[i].value*"_view"] = variablesAssignees[i]
+            elseif (numbers[i] < -1)
+                temps = SeaPearl.IntVarViewMul(variables[i], numbers[i], variables_names[i].value*"_view")
+                push!(variablesAssignees, SeaPearl.IntVarViewOpposite(temps, variables_names[i].value*"_view"))
+                SeaPearl.addVariable!(m, variablesAssignees[i])
+                interpreter.GLOBAL_VARIABLE[variables_names[i].value*"_view_neg"] = variablesAssignees[i]
+            end
+        end
+        new_constraint_greater = SeaPearl.SumGreaterThan(variablesAssignees, constraint.expressions[3].value, trailer)
+        new_constraint_lesser = SeaPearl.SumLessThan(variablesAssignees, constraint.expressions[3].value, trailer)
+        push!(m.constraints, new_constraint_greater)
+        push!(m.constraints, new_constraint_lesser)
+
+    elseif "int_le" == constraint.id
+        #LessOrEqual constraint
+    elseif "int_eq_reif" == constraint.id
+        #isLessOrEqual constraint
     end
+    
 end
 
 function create_solve(interpreter::Interpreter, solve_node, trailer, m)
