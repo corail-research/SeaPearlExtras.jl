@@ -28,3 +28,5 @@ Manifest.toml
 
 # Configuration files for MacOS
 .DS_Store&
+.Rproj.user
+*.Rproj
