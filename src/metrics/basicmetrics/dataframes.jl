@@ -6,7 +6,7 @@ Store useful results from consecutive search in `.csv` file.
 function storedata(metrics::AbstractMetrics; filename::String="")
     df = DataFrame(
         Episode = Int[],
-        Instance = Missing, 
+        Instance = Missing[], 
         Solution = Int[], 
         Nodes = Int[], 
         Time = Float64[], 
@@ -19,7 +19,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             :Episode => i,
             :Instance => missing,
             :Solution => 0,
-            :Nodes => metrics.meanNodeVisitedUntilOptimality[i],
+            :Nodes => metrics.meanNodeVisitedUntilEnd[i],
             :Time => metrics.timeneeded[i],
             :Score => missing,
             :Reward => isnothing(metrics.totalReward) ? missing : metrics.totalReward[i],
@@ -30,7 +30,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             solutionData = copy(episodeData)
             solutionData[:Solution] = j
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
-            solutionData[:Score] = isnothing(metrics.scores) ? missing : metrics.scores[i][j]
+            solutionData[:Score] = isnothing(metrics.scores) | isnothing(metrics.scores[i][j]) ? missing : metrics.scores[i][j]
             push!(df, solutionData)
         end
     end
@@ -55,7 +55,7 @@ function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
             :Episode => i,
             :Instance => j,
             :Solution => 0,
-            :Nodes => metrics[j].meanNodeVisitedUntilOptimality[i],
+            :Nodes => metrics[j].meanNodeVisitedUntilEnd[i],
             :Time => metrics[j].timeneeded[i],
             :Score => missing,
             :Reward => isnothing(metrics[j].totalReward) ? missing : metrics[j].totalReward[i],
@@ -66,7 +66,7 @@ function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
             solutionData = copy(episodeData)
             solutionData[:Solution] = k
             solutionData[:Nodes] = metrics[j].nodeVisited[i][k]
-            solutionData[:Score] = isnothing(metrics[j].scores) ? missing : metrics[j].scores[i][k]
+            solutionData[:Score] = isnothing(metrics[j].scores) | isnothing(metrics[j].scores[i][k]) ? missing : metrics[j].scores[i][k]
             push!(df, solutionData)
         end
     end
