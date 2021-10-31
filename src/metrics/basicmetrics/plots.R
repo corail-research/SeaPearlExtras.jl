@@ -69,6 +69,7 @@ plot.node.total <- function(df)
     ggtitle("Node visited until optimality") +
     scale_y_continuous(limits = function(l){c(0, l[2])})
   show(pl)
+  return(pl)
 }
 
 plot.node.first <- function(df)
@@ -89,6 +90,7 @@ plot.node.first <- function(df)
     ggtitle("Node visited until first solution") +
     scale_y_continuous(limits = function(l){c(0, l[2])})
   show(pl)
+  return(pl)
 }
 
 plot.score.first <- function(df, normalize=TRUE)
@@ -115,6 +117,7 @@ plot.score.first <- function(df, normalize=TRUE)
     ggtitle("Score distribution at first solution")
   
   show(pl)
+  return(pl)
 }
 
 plot.time.total <- function(df)
@@ -132,11 +135,11 @@ plot.time.total <- function(df)
     ggtitle("Time needed to prove optimatility") +
     scale_y_continuous(limits = function(l){c(0, l[2])})
   show(pl)
+  return(pl)
 }
 
 plot.area.variation <- function(df, binwidth = c(100, 1), normalize=TRUE)
 {
-  df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
   if(normalize)
   {
     df <- df %>%
@@ -147,7 +150,9 @@ plot.area.variation <- function(df, binwidth = c(100, 1), normalize=TRUE)
   df <- df %>% 
     drop_na(Score) %>% 
     group_by(Heuristic, Episode, Instance) %>% 
-    mutate(diff.area = ifelse( Nodes == min(Nodes), Nodes*Score, (Nodes - lag(Nodes)) * Score)) %>% 
+    mutate(diff.area = ifelse( Nodes == min(Nodes), Nodes*Score, (Nodes - lag(Nodes)) * Score))
+  df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
+  df <- df %>%
     ungroup() %>%
     group_by(Heuristic, Episode) %>%
     summarise( Median = median(diff.area), Up = quantile(diff.area, prob=.75), Down = quantile(diff.area, prob=.25))
@@ -163,6 +168,7 @@ plot.area.variation <- function(df, binwidth = c(100, 1), normalize=TRUE)
     ) +
     scale_y_continuous(limits = function(l){c(0, l[2])})
   show(pl)
+  return(pl)
 }
 
 plot.reward.variation <- function(df)
@@ -178,6 +184,7 @@ plot.reward.variation <- function(df)
       title = "Reward evolution during training"
     )
   show(pl)
+  return(pl)
 }
 
 plot.node.variation <- function(df)
@@ -193,19 +200,25 @@ plot.node.variation <- function(df)
       title = "Nodes visited during training"
     )
   show(pl)
+  return(pl)
 }
 
-plot.all <- function(path, n.episodes)
+plot.all <- function(path)
 {
   train <- initialize.dataframes.training(path)
   eval <- initialize.dataframes.eval(path)
   plot.node.total(eval)
+  ggsave(paste(path,"eval_total_nodes.png"))
   plot.node.first(eval)
+  ggsave(paste(path,"eval_first_nodes.png"))
   plot.time.total(eval)
+  ggsave(paste(path,"eval_total_time.png"))
   plot.score.first(eval)
+  ggsave(paste(path,"eval_first_score.png"))
   plot.area.variation(eval)
+  ggsave(paste(path,"eval_area.png"))
   plot.reward.variation(train)
+  ggsave(paste(path,"train_reward.png"))
   plot.node.variation(train)
-  
-  return(c(train, eval))
+  ggsave(paste(path,"train_nodes.png"))
 }
