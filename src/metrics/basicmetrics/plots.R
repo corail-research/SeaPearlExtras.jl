@@ -10,12 +10,9 @@ initialize.dataframes.eval <- function(folder)
   names <- substr(m, 0, nchar(m) - 4)
   files <- paste(folder, files, sep="")
   
-  n <- grep("^training$", names)
-  if(n >= 0)
-  {
-    names <- names[-n]
-    files <- files[-n]
-  }
+  idx.training <- grep("training[_[A-Za-z0-9]*]*\\.csv", files)
+  names <- names[- idx.training]
+  files <- files[- idx.training]
 
   df <- read.csv(files[1])
   df$Heuristic <- names[1]
@@ -37,18 +34,28 @@ initialize.dataframes.training <- function(folder)
   names <- substr(m, 0, nchar(m) - 4)
   files <- paste(folder, files, sep="")
   
-  n <- grep("^training$", names)
-  file <- files[n]
+  idx.training <- grep("training[_[A-Za-z0-9]*]*\\.csv", files)
+  names <- names[idx.training]
+  files <- files[idx.training]
   
-  df <- read.csv(file)
-  df$Heuristic <- "trained"
+  df <- read.csv(files[1])
+  df$Heuristic <- names[1]
+
+  if(length(files) > 1)
+  {
+    for(i in 2:length(files))
+    {
+      print(i)
+      tmp <- read.csv(files[i])
+      tmp$Heuristic <- names[i]
+      df <- rbind(df, tmp)
+    }
+  }
   df
 }
 
-
-plot.nodevisited.total <- function(folder)
+plot.node.total <- function(df)
 {
-  df <- initialize.dataframes.eval(folder)
   df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
   df <- df %>%
     filter(Solution == 0) %>%
@@ -61,15 +68,17 @@ plot.nodevisited.total <- function(folder)
     ylab("Nodes visited") +
     ggtitle("Node visited until optimality") +
     scale_y_continuous(limits = function(l){c(0, l[2])})
-  pl
+  show(pl)
 }
 
-plot.nodevisited.first <- function(folder)
+plot.node.first <- function(df)
 {
-  df <- initialize.dataframes.eval(folder)
   df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
   df <- df %>%
-    filter(Solution == 1) %>%
+    filter(Solution > 0 & !is.na(Score)) %>%
+    group_by(Episode, Heuristic, Instance) %>%
+    slice_min(Solution, n=1, with_ties = FALSE) %>%
+    ungroup() %>%
     group_by(Episode, Heuristic) %>%
     summarise( Median = median(Nodes), Up = quantile(Nodes, prob=.75), Down = quantile(Nodes, prob=.25))
   pl <- ggplot(data=df, aes(x=Episode, y=Median, colour=Heuristic)) + 
@@ -79,66 +88,102 @@ plot.nodevisited.first <- function(folder)
     ylab("Nodes visited") +
     ggtitle("Node visited until first solution") +
     scale_y_continuous(limits = function(l){c(0, l[2])})
-  pl
+  show(pl)
 }
 
-plot.scorevariation <- function(folder)
+plot.score.first <- function(df, normalize=TRUE)
 {
-  df <- initialize.dataframes.eval(folder)
   df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
-  n.episodes <- max(df$Episode)
-  df <- df %>%
-    filter(Solution > 0) %>%
-    filter(Heuristic != "trained" | Episode == n.episodes)
-  heuristics <- unique(df$Heuristic)
-  for(h in heuristics){
-    tmp <- df %>% filter(Heuristic == h)
-    model <- nls(Score ~ 1 + exp(-gamma*(Nodes-tau)), start=c(gamma=0.01, tau = 0), data=tmp, control = nls.control(tol=1e-04, minFactor = 1e-04, warnOnly = TRUE))
-    df$Pred[df$Heuristic == h] <- predict(model)
-    
-    fgh <- deriv(y ~ 1 + exp(-gamma*(x-tau)), c("gamma", "tau"), function(gamma,tau,x){})
-    beta <- coef(model)
-    f <- fgh(beta[1], beta[2], tmp$Nodes)
-    g <- attr(f, "gradient")
-    V.beta <- vcov(model)
-    GS=rowSums((g%*%V.beta)*g)
-    alpha <- 0.05
-    deltaf <- sqrt(GS)*qt(1-alpha/2,summary(model)$df[2])
-    df$Up[df$Heuristic == h] <- f+deltaf
-    df$Down[df$Heuristic == h] <- f-deltaf
+  if(normalize)
+  {
+    df <- df %>%
+      group_by(Instance) %>%
+      mutate(Score = Score/min(Score, na.rm=TRUE))
   }
-  pl <- ggplot(data=df, aes(x=Nodes, y=Score, colour=Heuristic)) +
-    geom_line(aes(y=Pred)) +
-    geom_ribbon(aes(ymin = Down, ymax = Up), alpha=0.1) +
-    xlab("Nodes visited") +
-    ylab("Relative score") +
-    ggtitle("Relative score variation during search")
-  pl
+  df <- df %>%
+    filter(Solution > 0 & !is.na(Score)) %>%
+    group_by(Episode, Heuristic, Instance) %>%
+    slice_min(Solution, n=1, with_ties = FALSE) %>%
+    ungroup() %>%
+    group_by(Episode, Heuristic) %>%
+    summarise( Median = median(Score), Up = quantile(Score, prob=.75), Down = quantile(Score, prob=.25))
+  pl <- ggplot(data=df, aes(x=Episode, y=Median, colour=Heuristic)) + 
+    geom_line() + 
+    geom_ribbon(aes(ymin = Down, ymax = Up), alpha = 0.1) +
+    xlab("Evaluation step") +
+    ylab("Score obtained") +
+    ggtitle("Score distribution at first solution")
+  
+  show(pl)
 }
 
-plot.rewardvariation <- function(folder, binwidth = c(100, 0.02))
+plot.time.total <- function(df)
 {
-  df <- initialize.dataframes.training(folder)
+  df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
+  df <- df %>%
+    filter(Solution == 0) %>%
+    group_by(Episode, Heuristic) %>%
+    summarise( Median = median(Time), Up = quantile(Time, prob=.75), Down = quantile(Time, prob=.25))
+  pl <- ggplot(data=df, aes(x=Episode, y=Median, colour=Heuristic)) + 
+    geom_line() + 
+    geom_ribbon(aes(ymin = Down, ymax = Up), alpha = 0.1) +
+    xlab("Evaluation step") +
+    ylab("Time needed") +
+    ggtitle("Time needed to prove optimatility") +
+    scale_y_continuous(limits = function(l){c(0, l[2])})
+  show(pl)
+}
+
+plot.area.variation <- function(df, binwidth = c(100, 1), normalize=TRUE)
+{
+  df$Heuristic[substr(df$Heuristic, 0, 6) == "random"] <- "random"
+  if(normalize)
+  {
+    df <- df %>%
+      group_by(Instance) %>%
+      mutate(Score = Score/min(Score, na.rm=TRUE))
+  }
+  n.episodes <- max(df$Episode)
+  df <- df %>% 
+    drop_na(Score) %>% 
+    group_by(Heuristic, Episode, Instance) %>% 
+    mutate(diff.area = ifelse( Nodes == min(Nodes), Nodes*Score, (Nodes - lag(Nodes)) * Score)) %>% 
+    ungroup() %>%
+    group_by(Heuristic, Episode) %>%
+    summarise( Median = median(diff.area), Up = quantile(diff.area, prob=.75), Down = quantile(diff.area, prob=.25))
   
+  pl <- ggplot(data=df, aes(x=Episode, y=Median, colour=Heuristic)) +
+    geom_line() + 
+    geom_ribbon(aes(ymin = Down, ymax = Up), alpha = 0.1) +
+    labs(
+      x = "Training episode",
+      y = "Area under the objective curve",
+      color = "curves",
+      title = "Area under the objective curve during training"
+    ) +
+    scale_y_continuous(limits = function(l){c(0, l[2])})
+  show(pl)
+}
+
+plot.reward.variation <- function(df)
+{
   pl <- ggplot(data = df, aes(x = Episode, y = Reward)) +
-    geom_hex(binwidth = c(100, 0.02)) +
+    geom_hex() +
     scale_fill_viridis_c() +
     geom_smooth(aes(color = "Local approximation")) +
     labs(
       x = "Training episode",
-      y = "Nodes visited",
+      y = "Reward obtained",
       color = "curves",
       title = "Reward evolution during training"
     )
-  pl
+  show(pl)
 }
 
-plot.nodesvariation <- function(folder, binwidth = c(110, 1.1))
+plot.node.variation <- function(df)
 {
-  df <- initialize.dataframes.training(folder)
-  
   pl <- ggplot(data = df, aes(x = Episode, y = Nodes)) +
-    geom_hex(binwidth = binwidth) +
+    geom_hex() +
     scale_fill_viridis_c() +
     geom_smooth(aes(color = "Local approximation")) +
     labs(
@@ -147,5 +192,20 @@ plot.nodesvariation <- function(folder, binwidth = c(110, 1.1))
       color = "curves",
       title = "Nodes visited during training"
     )
-  pl
+  show(pl)
+}
+
+plot.all <- function(path, n.episodes)
+{
+  train <- initialize.dataframes.training(path)
+  eval <- initialize.dataframes.eval(path)
+  plot.node.total(eval)
+  plot.node.first(eval)
+  plot.time.total(eval)
+  plot.score.first(eval)
+  plot.area.variation(eval)
+  plot.reward.variation(train)
+  plot.node.variation(train)
+  
+  return(c(train, eval))
 }
