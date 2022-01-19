@@ -15,3 +15,4 @@ Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 SeaPearl = "c13076dc-bdcd-48ba-bc88-4b44c2587ab3"
 
 [compat]
+julia = "1.6 - 1.7"
