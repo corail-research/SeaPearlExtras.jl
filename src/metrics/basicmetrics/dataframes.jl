@@ -2,6 +2,10 @@
     function store_data(metrics::BasicMetrics{O, H}, title::String) where{O<:AbstractTakeObjective, H<:ValueSelection}
 
 Store useful results from consecutive search in `.csv` file. 
+For each episode :  
+    store n+1 lines where n is the number of Solution + Infeasible case reached during the search.
+    The first line corresponds to general statistics for the search.
+    The following line correspond to specific statistics fo each solution found / infeasible state reached.
 """
 function storedata(metrics::AbstractMetrics; filename::String="")
     df = DataFrame(
@@ -30,7 +34,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             solutionData = copy(episodeData)
             solutionData[:Solution] = j
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
-            solutionData[:Score] = isnothing(metrics.scores) | isnothing(metrics.scores[i][j]) ? missing : metrics.scores[i][j]
+            solutionData[:Score] = isnothing(metrics.scores) ? missing : metrics.scores[i][j]
             push!(df, solutionData)
         end
     end
@@ -66,7 +70,7 @@ function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
             solutionData = copy(episodeData)
             solutionData[:Solution] = k
             solutionData[:Nodes] = metrics[j].nodeVisited[i][k]
-            solutionData[:Score] = isnothing(metrics[j].scores) | isnothing(metrics[j].scores[i][k]) ? missing : metrics[j].scores[i][k]
+            solutionData[:Score] = isnothing(metrics[j].scores) ? missing : metrics[j].scores[i][k]
             push!(df, solutionData)
         end
     end
