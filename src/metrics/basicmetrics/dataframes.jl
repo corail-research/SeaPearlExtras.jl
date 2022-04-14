@@ -26,15 +26,15 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             :Nodes => metrics.meanNodeVisitedUntilEnd[i],
             :Time => metrics.timeneeded[i],
             :Score => missing,
-            :Reward => isnothing(metrics.totalReward) ? missing : metrics.totalReward[i],
-            :Loss => isnothing(metrics.loss) ? missing : metrics.loss[i]
+            :Reward => isnothing(metrics.totalReward) || isnothing(metrics.totalReward[i]) ? missing : metrics.totalReward[i],
+            :Loss => isnothing(metrics.loss) || isnothing(metrics.loss[i]) ? missing : metrics.loss[i]
         )
         push!(df, episodeData)
         for j = 1:length(metrics.nodeVisited[i])
             solutionData = copy(episodeData)
             solutionData[:Solution] = j
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
-            solutionData[:Score] = isnothing(metrics.scores) ? missing : metrics.scores[i][j]
+            solutionData[:Score] = isnothing(metrics.scores) || isnothing(metrics.scores[i]) || isnothing(metrics.scores[i][j]) ? missing : metrics.scores[i][j]
             push!(df, solutionData)
         end
     end
@@ -62,15 +62,15 @@ function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
             :Nodes => metrics[j].meanNodeVisitedUntilEnd[i],
             :Time => metrics[j].timeneeded[i],
             :Score => missing,
-            :Reward => isnothing(metrics[j].totalReward) ? missing : metrics[j].totalReward[i],
-            :Loss => isnothing(metrics[j].loss) ? missing : metrics[j].loss[i]
+            :Reward => isnothing(metrics[j].totalReward) || isnothing(metrics[j].totalReward[i]) ? missing : metrics[j].totalReward[i],
+            :Loss => isnothing(metrics[j].loss) || isnothing(metrics[j].loss[i]) ? missing : metrics[j].loss[i]
         )
         push!(df, episodeData)
         for k = 1:length(metrics[j].nodeVisited[i])
             solutionData = copy(episodeData)
             solutionData[:Solution] = k
             solutionData[:Nodes] = metrics[j].nodeVisited[i][k]
-            solutionData[:Score] = isnothing(metrics[j].scores) ? missing : metrics[j].scores[i][k]
+            solutionData[:Score] = isnothing(metrics[j].scores) || isnothing(metrics[j].scores[i]) || isnothing(metrics[j].scores[i][k]) ? missing : metrics[j].scores[i][k]
             push!(df, solutionData)
         end
     end
