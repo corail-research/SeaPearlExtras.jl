@@ -87,7 +87,7 @@ def node_rollmean(training, window=100, ax=None):
     plot.set(
         xlabel="Training episode",
         ylabel="Nodes visited",
-        title="Sliding average over the last {} episodes of the number of nodes visited during an episode.".format(
+        title="Sliding average over the last {} episodes of the number of nodes visited \n during an episode.".format(
             window
         ),
     )
