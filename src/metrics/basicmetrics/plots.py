@@ -44,7 +44,6 @@ def get_training(path):
 
 
 def save_fig(plot, save_path, name):
-    sns.set(rc={"figure.figsize": (12, 8)})
     """
     Save the plot at the location specified by `save_path` if `save_path` is not `None`.
     """
@@ -54,7 +53,6 @@ def save_fig(plot, save_path, name):
 
 
 def node_total(eval, estimator=np.mean, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     plot = sns.lineplot(
         data=eval[eval["Solution"] == 0], y="Nodes", x="Episode", hue="Heuristic", estimator=estimator, ax=ax
     )
@@ -63,7 +61,6 @@ def node_total(eval, estimator=np.mean, ax=None, save_path=None):
 
 
 def node_first(eval, estimator=np.mean, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     first_solution = eval.loc[
         eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
     ]
@@ -73,7 +70,6 @@ def node_first(eval, estimator=np.mean, ax=None, save_path=None):
 
 
 def score_first(eval, estimator=np.mean, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     first_solution = eval.loc[
         eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
     ]
@@ -83,7 +79,6 @@ def score_first(eval, estimator=np.mean, ax=None, save_path=None):
 
 
 def time_total(eval, estimator=np.mean, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     plot = sns.lineplot(
         data=eval[eval["Solution"] == 0], y="Time", x="Episode", hue="Heuristic", estimator=estimator, ax=ax
     )
@@ -92,7 +87,6 @@ def time_total(eval, estimator=np.mean, ax=None, save_path=None):
 
 
 def node_rollmean(training, window=100, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     df = (
         training[training["Solution"] == 0]
         .set_index("Episode")
@@ -114,7 +108,6 @@ def node_rollmean(training, window=100, ax=None, save_path=None):
 
 
 def reward_rollmean(training, window=100, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     df = (
         training[training["Solution"] == 0]
         .set_index("Episode")
@@ -134,7 +127,6 @@ def reward_rollmean(training, window=100, ax=None, save_path=None):
 
 
 def loss_rollmean(training, window=100, ax=None, save_path=None):
-    sns.set(rc={"figure.figsize": (12, 8)})
     df = (
         training[training["Solution"] == 0]
         .set_index("Episode")
@@ -154,8 +146,7 @@ def loss_rollmean(training, window=100, ax=None, save_path=None):
 
 
 def summary(eval, training, estimator=np.mean, window=100, save_path=None):
-    sns.set(rc={"figure.figsize": (24, 16)})
-    fig, axs = plt.subplots(nrows=2, ncols=3)
+    fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(24, 16), facecolor='white')
 
     node_total(eval, estimator=estimator, ax=axs[0][0])
     node_first(eval, estimator=estimator, ax=axs[0][1])
@@ -181,6 +172,7 @@ def all(path, estimator=np.mean, window=100, save_path=None):
 
     summary(eval, training, save_path=save_path)
 
+    sns.set(rc={"figure.figsize": (12, 8)})
     _, ax = plt.subplots()
     node_total(eval, estimator=estimator, save_path=save_path, ax=ax)
     _, ax = plt.subplots()
