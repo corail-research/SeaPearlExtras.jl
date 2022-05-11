@@ -170,7 +170,7 @@ def all(path, estimator=np.mean, window=100, save_path=None):
     if save_path is None:
         save_path = path
 
-    summary(eval, training, save_path=save_path)
+    summary(eval, training, estimator=estimator, window=window, save_path=save_path)
 
     sns.set(rc={"figure.figsize": (12, 8)})
     _, ax = plt.subplots()
