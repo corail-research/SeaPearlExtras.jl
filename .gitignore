@@ -30,3 +30,5 @@ Manifest.toml
 .DS_Store&
 .Rproj.user
 *.Rproj
+
+__pycache__
