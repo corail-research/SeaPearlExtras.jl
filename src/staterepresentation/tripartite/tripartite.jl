@@ -1,8 +1,8 @@
-using SeaPearl: DefaultStateRepresentation, VariableVertex, ValueVertex, adjacency_matrix
+using SeaPearl: DefaultStateRepresentation, VariableVertex, ValueVertex, adjacency_matrix, HeterogeneousStateRepresentation
 using Graphs
 using Cairo, Compose
 
-function plottripartite(sr::DefaultStateRepresentation)
+function plottripartite(sr::Union{DefaultStateRepresentation, HeterogeneousStateRepresentation})
     cpmodel = sr.cplayergraph
     am = Matrix(adjacency_matrix(cpmodel))
     n = cpmodel.totalLength
@@ -17,7 +17,7 @@ function plottripartite(sr::DefaultStateRepresentation)
             push!(nodefillc,"blue")
             push!(label,v.value)
         else  
-            push!(nodefillc,"black") 
+            push!(nodefillc,"black")
             push!(label,typeof(v.constraint))
         end
         
