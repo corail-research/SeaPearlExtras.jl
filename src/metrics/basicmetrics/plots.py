@@ -95,6 +95,15 @@ def node_first(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     save_fig(plot, save_path, "eval_node_visited_first_solution")
 
 
+def node_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
+    first_solution = eval.loc[
+        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Score"].idxmin()
+    ].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    plot = sns.lineplot(data=first_solution, y="Nodes", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
+    plot.set(xlabel="Evaluation step", ylabel="Nodes visited", title="Node visited until best solution")
+    save_fig(plot, save_path, "eval_node_visited_best_solution")
+
+
 def score_first(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     first_solution = eval.loc[
         eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
@@ -180,8 +189,8 @@ def summary(eval, training, estimator=np.mean, window=100, save_path=None):
     fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(24, 16), facecolor="white")
 
     node_total(eval, estimator=estimator, ax=axs[0][0], training=training)
-    node_first(eval, estimator=estimator, ax=axs[0][1], training=training)
     if not eval["Score"].isnull().values.all():
+        node_best(eval, estimator=estimator, ax=axs[0][1], training=training)
         score_first(eval, estimator=estimator, ax=axs[0][2], training=training)
     node_rollmean(training, window=window, ax=axs[1][0])
     reward_rollmean(training, window=window, ax=axs[1][1])
@@ -211,6 +220,9 @@ def all(path, estimator=np.mean, window=100, save_path=None):
     if not eval["Score"].isnull().values.all():
         _, ax = plt.subplots()
         score_first(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
+        _, ax = plt.subplots()
+        node_best(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
+
     _, ax = plt.subplots()
     node_rollmean(training, window=window, save_path=save_path)
     _, ax = plt.subplots()
