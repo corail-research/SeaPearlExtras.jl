@@ -179,10 +179,10 @@ def loss_rollmean(training, window=100, ax=None, save_path=None):
 def summary(eval, training, estimator=np.mean, window=100, save_path=None):
     fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(24, 16), facecolor="white")
 
-    node_total(eval, estimator=estimator, ax=axs[0][0])
-    node_first(eval, estimator=estimator, ax=axs[0][1])
+    node_total(eval, estimator=estimator, ax=axs[0][0], training=training)
+    node_first(eval, estimator=estimator, ax=axs[0][1], training=training)
     if not eval["Score"].isnull().values.all():
-        score_first(eval, estimator=estimator, ax=axs[0][2])
+        score_first(eval, estimator=estimator, ax=axs[0][2], training=training)
     node_rollmean(training, window=window, ax=axs[1][0])
     reward_rollmean(training, window=window, ax=axs[1][1])
     loss_rollmean(training, window=window, ax=axs[1][2])
