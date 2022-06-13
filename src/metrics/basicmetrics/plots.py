@@ -85,6 +85,31 @@ def node_total(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     plot.set(xlabel="Evaluation step", ylabel="Nodes visited", title="Node visited until optimality")
     save_fig(plot, save_path, "eval_node_visited_optimality")
 
+def area_under_curve(eval, estimator=np.mean, ax=None, save_path=None, training=None):
+    min_score_accross_files = eval["Score"].min()
+    eval["Area"] = ""
+    for i in range(len(eval)):
+        if eval.loc[i, "Solution"] == 0:
+            eval.loc[i, "Area"] = 0
+            prev_nodes = 0
+        elif eval.loc[i, "SolutionFound"] == 0:
+            eval.loc[i, "Area"] = 0
+        else:
+            eval.loc[i, "Area"] = (eval.loc[i, "Score"] - min_score_accross_files)*(eval.loc[i, "Nodes"]-prev_nodes)
+            prev_nodes = eval.loc[i, "Nodes"]
+    data = eval[["Episode","Instance","Area","Heuristic"]].groupby(["Episode","Instance","Heuristic"])["Area"].sum().reset_index()
+
+    plot = sns.lineplot(
+        data=data.sort_values("Heuristic", key=lambda series: apply_key(series, training)),
+        y="Area",
+        x="Episode",
+        hue="Heuristic",
+        estimator=estimator,
+        ax=ax,
+    )
+    plot.set(xlabel="Evaluation step", ylabel="Area under the curve", title="Area under the curve")
+    save_fig(plot, save_path, "area_under_curve")
+
 
 def node_first(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     first_solution = eval.loc[
@@ -229,3 +254,5 @@ def all(path, estimator=np.mean, window=100, save_path=None):
     reward_rollmean(training, window=window, save_path=save_path)
     _, ax = plt.subplots()
     loss_rollmean(training, window=window, save_path=save_path)
+    _, ax = plt.subplots()
+    area_under_curve(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
