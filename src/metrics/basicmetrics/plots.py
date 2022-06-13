@@ -85,6 +85,7 @@ def node_total(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     plot.set(xlabel="Evaluation step", ylabel="Nodes visited", title="Node visited until optimality")
     save_fig(plot, save_path, "eval_node_visited_optimality")
 
+
 def area_under_curve(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     min_score_accross_files = eval["Score"].min()
     eval["Area"] = ""
@@ -137,6 +138,15 @@ def score_first(eval, estimator=np.mean, ax=None, save_path=None, training=None)
     plot = sns.lineplot(data=first_solution, y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
     plot.set(xlabel="Evaluation step", ylabel="Score obtained", title="Score at first solution")
     save_fig(plot, save_path, "eval_score_first_solution")
+
+
+def score_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
+    first_solution = eval.loc[
+        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Score"].idxmin()
+    ].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    plot = sns.lineplot(data=first_solution, y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
+    plot.set(xlabel="Evaluation step", ylabel="Score obtained", title="Score at best solution")
+    save_fig(plot, save_path, "eval_score_best_solution")
 
 
 def time_total(eval, estimator=np.mean, ax=None, save_path=None, training=None):
@@ -212,12 +222,19 @@ def loss_rollmean(training, window=100, ax=None, save_path=None):
     save_fig(plot, save_path, "train_loss")
 
 
-def summary(eval, training, estimator=np.mean, window=100, save_path=None):
+def summary(eval, training, estimator=np.mean, window=100, save_path=None, ilds=False):
     fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(24, 16), facecolor="white")
 
-    node_total(eval, estimator=estimator, ax=axs[0][0], training=training)
+    if not ilds:
+        node_total(eval, estimator=estimator, ax=axs[0][0], training=training)
+    else:
+        area_under_curve(eval, estimator=estimator, ax=axs[0][0], training=training)
+    
     if not eval["Score"].isnull().values.all():
-        node_best(eval, estimator=estimator, ax=axs[0][1], training=training)
+        if not ilds:
+            node_best(eval, estimator=estimator, save_path=save_path, ax=axs[0][1], training=training)
+        else:
+            score_best(eval, estimator=estimator, save_path=save_path, ax=axs[0][1], training=training)
         score_first(eval, estimator=estimator, ax=axs[0][2], training=training)
     node_rollmean(training, window=window, ax=axs[1][0])
     reward_rollmean(training, window=window, ax=axs[1][1])
@@ -225,7 +242,7 @@ def summary(eval, training, estimator=np.mean, window=100, save_path=None):
     fig.savefig(save_path + "summary.png")
 
 
-def all(path, estimator=np.mean, window=100, save_path=None):
+def all(path, estimator=np.mean, window=100, save_path=None, ilds=False):
     """
     Saves all plots and displays them if run in a notebook.
 
@@ -237,7 +254,7 @@ def all(path, estimator=np.mean, window=100, save_path=None):
     if save_path is None:
         save_path = path
 
-    summary(eval, training, estimator=estimator, window=window, save_path=save_path)
+    summary(eval, training, estimator=estimator, window=window, save_path=save_path, ilds=ilds)
 
     sns.set(rc={"figure.figsize": (12, 8)})
     _, ax = plt.subplots()
@@ -247,6 +264,8 @@ def all(path, estimator=np.mean, window=100, save_path=None):
     if not eval["Score"].isnull().values.all():
         _, ax = plt.subplots()
         score_first(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
+        _, ax = plt.subplots()
+        score_best(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
         _, ax = plt.subplots()
         node_best(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
 
