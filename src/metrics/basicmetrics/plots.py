@@ -107,6 +107,7 @@ def area_under_curve(eval, estimator=np.mean, ax=None, save_path=None, training=
         estimator=estimator,
         ax=ax,
     )
+    plot.set(yscale="log")
     plot.set(xlabel="Evaluation step", ylabel="Area under the curve", title="Area under the curve")
     save_fig(plot, save_path, "area_under_curve")
 
@@ -202,6 +203,7 @@ def loss_rollmean(training, window=100, ax=None, save_path=None):
         .reset_index()
     )
     plot = sns.lineplot(data=df, y="Loss", x="Episode", hue="Heuristic", ax=ax)
+    plot.set(yscale="log")
     plot.set(
         xlabel="Training episode",
         ylabel="Loss",
