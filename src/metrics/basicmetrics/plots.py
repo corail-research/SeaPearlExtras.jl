@@ -222,6 +222,27 @@ def loss_rollmean(training, window=100, ax=None, save_path=None):
     save_fig(plot, save_path, "train_loss")
 
 
+def performance_plot_nodes_optimality(performance, ax=None, save_path=None):
+    df = performance[(performance["Solution"] == 0) & (performance["Episode"] == 1)][["Instance", "Nodes", "Heuristic"]]
+    best = df[["Instance", "Nodes"]].groupby("Instance").min("Nodes").to_dict()["Nodes"]
+    df["Ratio"] = df.apply(lambda x: x["Nodes"] / best[x["Instance"]], axis=1)
+    df = df.sort_values("Ratio")
+    
+    count = {heuristic: 0 for heuristic in set(df["Heuristic"])}
+    max_instance = df["Instance"].max()
+    def process(heuristic):
+        count[heuristic] += 1
+        return count[heuristic] / max_instance
+    df["Proportion"] = df["Heuristic"].apply(process)
+
+    plot = sns.lineplot(data=eval, y="Proportion", x="Ratio", hue="Heuristic", drawstyle='steps-pre', ax=ax)
+    plot.set(
+        xlabel="Within this factor of the best number of nodes",
+        ylabel="Proportion of the {} instances".format(max_instance),
+        title="Performance profile for number of nodes until optimality.",
+    )
+
+
 def summary(eval, training, estimator=np.mean, window=100, save_path=None, ilds=False):
     fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(24, 16), facecolor="white")
 
