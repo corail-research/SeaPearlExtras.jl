@@ -37,7 +37,7 @@ def get_eval(path):
     # We read the csv into a pandas.Dataframe
     dfs = [pd.read_csv(path + file) for file in files]
     # We get the names of the heuristics.
-    names = [re.search("([A-Za-z0-9]*)\.csv$", file).group(1) for file in files]
+    names = [re.search("([A-Za-z0-9.()]*)\.csv$", file).group(1) for file in files]
     for i in range(len(names)):
         dfs[i]["Heuristic"] = names[i]
 
@@ -55,7 +55,7 @@ def get_training(path):
     # We read the csv into a pandas.Dataframe
     dfs = [pd.read_csv(path + file) for file in files]
     # We get the names of the heuristics.
-    names = [re.search("(training[_A-Za-z0-9]*)\.csv$", file).group(1) for file in files]
+    names = [re.search("(training[_A-Za-z0-9.()]*)\.csv$", file).group(1) for file in files]
     for i in range(len(names)):
         dfs[i]["Heuristic"] = names[i]
 
