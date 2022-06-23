@@ -223,11 +223,11 @@ def loss_rollmean(training, window=100, ax=None, save_path=None):
 
 
 def performance_plot_nodes_optimality(performance, ax=None, save_path=None):
-    df = performance[(performance["Solution"] == 0) & (performance["Episode"] == 1)][["Instance", "Nodes", "Heuristic"]]
+    df = performance[performance["Solution"] == 0][["Instance", "Nodes", "Heuristic"]]
     best = df[["Instance", "Nodes"]].groupby("Instance").min("Nodes").to_dict()["Nodes"]
     df["Ratio"] = df.apply(lambda x: x["Nodes"] / best[x["Instance"]], axis=1)
     df = df.sort_values("Ratio")
-    
+
     count = {heuristic: 0 for heuristic in set(df["Heuristic"])}
     max_instance = df["Instance"].max()
     def process(heuristic):
@@ -235,12 +235,102 @@ def performance_plot_nodes_optimality(performance, ax=None, save_path=None):
         return count[heuristic] / max_instance
     df["Proportion"] = df["Heuristic"].apply(process)
 
-    plot = sns.lineplot(data=eval, y="Proportion", x="Ratio", hue="Heuristic", drawstyle='steps-pre', ax=ax)
+    for heuristic in set(df["Heuristic"]):
+        df.loc[len(df)] = [-1, -1, heuristic, 1, 0]
+        df.loc[len(df)] = [-1, -1, heuristic, df["Ratio"].max(), 1]
+    df = df.sort_values("Ratio")
+    
+    plot = sns.lineplot(data=df, y="Proportion", x="Ratio", hue="Heuristic", drawstyle='steps-post', ax=ax, ci=None)
     plot.set(
         xlabel="Within this factor of the best number of nodes",
         ylabel="Proportion of the {} instances".format(max_instance),
         title="Performance profile for number of nodes until optimality.",
     )
+    save_fig(plot, save_path, "performance_nodes_optimality")
+
+
+def performance_plot_time_optimality(performance, ax=None, save_path=None):
+    df = performance[performance["Solution"] == 0][["Instance", "Time", "Heuristic"]]
+    best = df[["Instance", "Time"]].groupby("Instance").min("Time").to_dict()["Time"]
+    df["Ratio"] = df.apply(lambda x: x["Time"] / best[x["Instance"]], axis=1)
+    df = df.sort_values("Ratio")
+
+    count = {heuristic: 0 for heuristic in set(df["Heuristic"])}
+    max_instance = df["Instance"].max()
+    def process(heuristic):
+        count[heuristic] += 1
+        return count[heuristic] / max_instance
+    df["Proportion"] = df["Heuristic"].apply(process)
+
+    for heuristic in set(df["Heuristic"]):
+        df.loc[len(df)] = [-1, -1, heuristic, 1, 0]
+        df.loc[len(df)] = [-1, -1, heuristic, df["Ratio"].max(), 1]
+    df = df.sort_values("Ratio")
+    
+    plot = sns.lineplot(data=df, y="Proportion", x="Ratio", hue="Heuristic", drawstyle='steps-post', ax=ax, ci=None)
+    plot.set(
+        xlabel="Within this factor of the best time",
+        ylabel="Proportion of the {} instances".format(max_instance),
+        title="Performance profile for time until optimality.",
+    )
+    save_fig(plot, save_path, "performance_time_optimality")
+
+def performance_plot_score_first(performance, ax=None, save_path=None):
+    df = performance.loc[
+        performance[performance["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
+    ][["Instance", "Score", "Heuristic"]]
+    best = df[["Instance", "Score"]].groupby("Instance").min("Score").to_dict()["Score"]
+    df["Ratio"] = df.apply(lambda x: x["Score"] / best[x["Instance"]] if best[x["Instance"]] > 0 else best[x["Instance"]] / x["Score"], axis=1)
+    df = df.sort_values("Ratio")
+
+    count = {heuristic: 0 for heuristic in set(df["Heuristic"])}
+    max_instance = df["Instance"].max()
+    def process(heuristic):
+        count[heuristic] += 1
+        return count[heuristic] / max_instance
+    df["Proportion"] = df["Heuristic"].apply(process)
+
+    for heuristic in set(df["Heuristic"]):
+        df.loc[len(df)] = [-1, -1, heuristic, 1, 0]
+        df.loc[len(df)] = [-1, -1, heuristic, df["Ratio"].max(), 1]
+    df = df.sort_values("Ratio")
+    
+    plot = sns.lineplot(data=df, y="Proportion", x="Ratio", hue="Heuristic", drawstyle='steps-post', ax=ax, ci=None)
+    plot.set(
+        xlabel="Within this factor of the best first score",
+        ylabel="Proportion of the {} instances".format(max_instance),
+        title="Performance profile for first score.",
+    )
+    save_fig(plot, save_path, "performance_score_first")
+
+
+def performance_plot_score_best(performance, ax=None, save_path=None):
+    df = performance.loc[
+        performance[performance["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Score"].idxmin()
+    ][["Instance", "Score", "Heuristic"]]
+    best = df[["Instance", "Score"]].groupby("Instance").min("Score").to_dict()["Score"]
+    df["Ratio"] = df.apply(lambda x: x["Score"] / best[x["Instance"]] if best[x["Instance"]] > 0 else best[x["Instance"]] / x["Score"], axis=1)
+    df = df.sort_values("Ratio")
+
+    count = {heuristic: 0 for heuristic in set(df["Heuristic"])}
+    max_instance = df["Instance"].max()
+    def process(heuristic):
+        count[heuristic] += 1
+        return count[heuristic] / max_instance
+    df["Proportion"] = df["Heuristic"].apply(process)
+
+    for heuristic in set(df["Heuristic"]):
+        df.loc[len(df)] = [-1, -1, heuristic, 1, 0]
+        df.loc[len(df)] = [-1, -1, heuristic, df["Ratio"].max(), 1]
+    df = df.sort_values("Ratio")
+    
+    plot = sns.lineplot(data=df, y="Proportion", x="Ratio", hue="Heuristic", drawstyle='steps-post', ax=ax, ci=None)
+    plot.set(
+        xlabel="Within this factor of the best score",
+        ylabel="Proportion of the {} instances".format(max_instance),
+        title="Performance profile for best score.",
+    )
+    save_fig(plot, save_path, "performance_score_best")
 
 
 def summary(eval, training, estimator=np.mean, window=100, save_path=None, ilds=False):
@@ -298,3 +388,25 @@ def all(path, estimator=np.mean, window=100, save_path=None, ilds=False):
     loss_rollmean(training, window=window, save_path=save_path)
     _, ax = plt.subplots()
     area_under_curve(eval, estimator=estimator, save_path=save_path, ax=ax, training=training)
+
+
+def performance(path, save_path=None, ilds=False):
+    """
+    Saves all plots and displays them if run in a notebook.
+
+    The files are saved in the same location as the data files, unless the `save_path` parameter is specified.
+    """
+    eval = get_eval(path)
+
+    if save_path is None:
+        save_path = path
+
+    sns.set(rc={"figure.figsize": (12, 8)})
+    _, ax = plt.subplots()
+    performance_plot_nodes_optimality(eval, save_path=save_path, ax=ax)
+    _, ax = plt.subplots()
+    performance_plot_time_optimality(eval, save_path=save_path, ax=ax)
+    _, ax = plt.subplots()
+    performance_plot_score_best(eval, save_path=save_path, ax=ax)
+    _, ax = plt.subplots()
+    performance_plot_score_first(eval, save_path=save_path, ax=ax)
