@@ -48,7 +48,7 @@ def score_first(eval):
 
 
 def score_best(eval):
-    first_solution = eval.loc[eval[(eval["SolutionFound"] == 1) & (eval["Strategy"].str.startswith("ILDS"))].groupby(["Episode", "Instance", "Heuristic", "Strategy"])["Score"].agg(lambda x: x.idxmin())]
+    first_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic", "Strategy"])["Score"].agg(lambda x: x.idxmin())]
     means = first_solution[["Score", "Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).mean()
     stds = first_solution[["Score", "Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).std()
     print("Mean best score: ")
