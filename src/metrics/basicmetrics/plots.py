@@ -280,7 +280,10 @@ def performance_plot_score_first(performance, ax=None, save_path=None):
         performance[performance["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
     ][["Instance", "Score", "Heuristic"]]
     best = df[["Instance", "Score"]].groupby("Instance").min("Score").to_dict()["Score"]
-    df["Ratio"] = df.apply(lambda x: x["Score"] / best[x["Instance"]] if best[x["Instance"]] > 0 else best[x["Instance"]] / x["Score"], axis=1)
+    df["Ratio"] = df.apply(lambda x: x["Score"] / best[x["Instance"]] if best[x["Instance"]] > 0 
+                                else best[x["Instance"]] / x["Score"] if x["Score"] != 0 
+                                else 1 if best[x["Instance"]] == 0 else None, axis=1) # TODO: Better Handle Division by Zero
+
     df = df.sort_values("Ratio")
 
     count = {heuristic: 0 for heuristic in set(df["Heuristic"])}
