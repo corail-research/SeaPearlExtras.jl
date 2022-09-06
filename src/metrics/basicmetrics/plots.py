@@ -76,6 +76,7 @@ def save_fig(plot, save_path, name):
 def node_total(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     plot = sns.lineplot(
         data=eval[eval["Solution"] == 0].sort_values("Heuristic", key=lambda series: apply_key(series, training)),
+        #data=eval.loc[eval["Episode"] <= 75][eval["Solution"] == 0].sort_values("Heuristic", key=lambda series: apply_key(series, training)),
         y="Nodes",
         x="Episode",
         hue="Heuristic",
@@ -117,6 +118,7 @@ def node_first(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     first_solution = eval.loc[
         eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
     ].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    #first_solution = first_solution.loc[first_solution["Episode"] <= 75]
     plot = sns.lineplot(data=first_solution, y="Nodes", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
     plot.set(xlabel="Evaluation step", ylabel="Nodes visited", title="Node visited until first solution")
     save_fig(plot, save_path, "eval_node_visited_first_solution")
@@ -126,6 +128,7 @@ def node_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     first_solution = eval.loc[
         eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Score"].idxmin()
     ].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    #first_solution = first_solution.loc[first_solution["Episode"] <= 75]
     plot = sns.lineplot(data=first_solution, y="Nodes", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
     plot.set(xlabel="Evaluation step", ylabel="Nodes visited", title="Node visited until best solution")
     save_fig(plot, save_path, "eval_node_visited_best_solution")
@@ -133,8 +136,15 @@ def node_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
 
 def score_first(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     first_solution = eval.loc[
-        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()
-    ].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    last_solution = eval.loc[
+        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmax()].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    #first_solution = first_solution.loc[first_solution["Episode"] <= 75]
+    #last_solution = last_solution.loc[last_solution["Episode"] <= 75]
+    data_opti = last_solution.groupby(["Instance","Episode"])["Score"].min()
+    data_opti = data_opti.to_frame().reset_index()
+    data_opti= data_opti.assign(Heuristic = "Optimal Score")
+    first_solution = pd.concat([first_solution,data_opti]).reset_index()
     plot = sns.lineplot(data=first_solution, y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
     plot.set(xlabel="Evaluation step", ylabel="Score obtained", title="Score at first solution")
     save_fig(plot, save_path, "eval_score_first_solution")
@@ -142,8 +152,8 @@ def score_first(eval, estimator=np.mean, ax=None, save_path=None, training=None)
 
 def score_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
     first_solution = eval.loc[
-        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Score"].idxmin()
-    ].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+        eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Score"].idxmin()].sort_values("Heuristic", key=lambda series: apply_key(series, training))
+    #first_solution = first_solution.loc[first_solution["Episode"] <= 75]
     plot = sns.lineplot(data=first_solution, y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
     plot.set(xlabel="Evaluation step", ylabel="Score obtained", title="Score at best solution")
     save_fig(plot, save_path, "eval_score_best_solution")
@@ -334,13 +344,15 @@ def performance_plot_score_best(performance, ax=None, save_path=None):
 
 
 def summary(eval, training, estimator=np.mean, window=100, save_path=None, ilds=False):
-    fig, axs = plt.subplots(nrows=2, ncols=3, figsize=(24, 16), facecolor="white")
+    fig, axs = plt.subplots(nrows=2, ncols=4, figsize=(28, 16), facecolor="white")
 
     if not ilds:
         node_total(eval, estimator=estimator, ax=axs[0][0], training=training)
     else:
-        area_under_curve(eval, estimator=estimator, ax=axs[0][0], training=training)
-    
+        pass
+
+    area_under_curve(eval, estimator=estimator, ax=axs[0][3], training=training)
+
     if not eval["Score"].isnull().values.all():
         if not ilds:
             node_best(eval, estimator=estimator, save_path=save_path, ax=axs[0][1], training=training)
