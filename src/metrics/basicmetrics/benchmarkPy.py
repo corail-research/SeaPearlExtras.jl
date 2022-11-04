@@ -20,7 +20,6 @@ def get_eval(path):
     for i in range(len(names)):
         dfs[i]["Heuristic"] = names[i]
         dfs[i]["Strategy"] = strategies[i]
-
     # We concat every eval dataframe into one
     eval = pd.concat(dfs, axis=0, ignore_index=True)
     return eval
@@ -30,20 +29,20 @@ def node_optimality(eval):
     means = data[["Nodes","Heuristic"]].groupby("Heuristic").mean()
     stds = data[["Nodes","Heuristic"]].groupby("Heuristic").std()
     print("Mean number of nodes visited before optimality: ")
-    display(means)
+    display(means.to_string())
     print("Stds number of nodes visited before optimality: ")
-    display(stds)
+    display(stds.to_string())
 
 
 
 def score_first(eval):
-    first_solution = eval.loc[eval[(eval["SolutionFound"] == 1) & (eval["Strategy"] == "ILDS0")].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()]
-    means = first_solution[["Score", "Heuristic"]].groupby("Heuristic").mean()
-    stds = first_solution[["Score", "Heuristic"]].groupby("Heuristic").std()
+    first_solution = eval.loc[eval[(eval["SolutionFound"] == 1) & (eval["Strategy"] == "ILDS0")].groupby(["Episode","Instance","Heuristic"])["Solution"].idxmin()]
+    means = first_solution[["Score","Nodes","Heuristic"]].groupby("Heuristic").mean()
+    stds = first_solution[["Score","Nodes", "Heuristic"]].groupby("Heuristic").std()
     print("Mean first score: ")
-    display(means)
+    display(means.to_string())
     print("Std first score: ")
-    display(stds)
+    display(stds.to_string())
         
 def area_under_curve(eval):
     eval["Area"] = ""
@@ -60,33 +59,43 @@ def area_under_curve(eval):
     means = Auc[["Area", "Heuristic","Strategy"]].groupby(["Heuristic","Strategy"]).mean()
     stds = Auc[["Area", "Heuristic","Strategy"]].groupby(["Heuristic","Strategy"]).std()
     print("Mean first AUC: ")
-    display(means)
+    display(means.to_string())
     print("Std first AUC: ")
-    display(stds)
+    display(stds.to_string())
 
 def score_best(eval):
-    first_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic", "Strategy"])["Score"].agg(lambda x: x.idxmin())]
-    means = first_solution[["Score", "Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).mean()
-    stds = first_solution[["Score", "Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).std()
+    best_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic", "Strategy"])["Score"].agg(lambda x: x.idxmin())]
+    means = best_solution[["Score","Nodes","Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).mean()
+    stds = best_solution[["Score","Nodes","Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).std()
     print("Mean best score: ")
-    display(means)
+    display(means.to_string())
     print("Std best score: ")
-    display(stds)
-
+    display(stds.to_string())
+    
+def best_score_found(eval):
+    best_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance"])["Score"].agg(lambda x: x.idxmin())]
+    means = best_solution[["Score","Nodes"]].mean()
+    stds = best_solution[["Score","Nodes"]].std()
+    print("Mean best score: ")
+    display(means.to_string())
+    print("Std best score: ")
+    display(stds.to_string())    
 
 def time_total(eval):
     data = eval[eval["Solution"] == 0]
     means = data[["Time", "Heuristic", "Strategy"]].groupby(["Heuristic","Strategy"]).mean()
     stds = data[["Time", "Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).std()
     print("Mean time needed: ")
-    display(means)
+    display(means.to_string())
     print("Stds time needed: ")
-    display(stds)
+    display(stds.to_string())
 
 def time_reduction(eval):
-
-    score_0 = eval.loc[eval[(eval["Heuristic"]!="random")&(eval["Strategy"]=="ILDS0")].groupby(["Episode","Instance","Heuristic"])["Score"].idxmin()]
-    score_rand = eval[(eval["Heuristic"]=="random")&(eval["SolutionFound"]==1)]
+    score_0 = eval.loc[eval[(eval["Heuristic"]=="3layer")&(eval["Strategy"]=="ILDS0")].groupby(["Episode","Instance","Heuristic"])["Score"].idxmin()]
+    if len(eval[(eval["Heuristic"]=="random1")&(eval["SolutionFound"]==1)&(eval["Strategy"] == "DFS")]) !=0 :
+        score_rand = eval[(eval["Heuristic"]=="random1")&(eval["SolutionFound"]==1)&(eval["Strategy"] == "DFS")]
+    else :
+        score_rand = eval[(eval["Heuristic"]=="random1")&(eval["SolutionFound"]==1)&(eval["Strategy"] == "DFSearch100000")]
     keys = list(["Instance","Score"])  #
     i1 = score_rand.set_index(keys).index
     i2 = score_0.set_index(keys).index
@@ -94,38 +103,37 @@ def time_reduction(eval):
     score_merged = score_0.merge(score_rand_0, left_on=["Instance"], right_on =["Instance"])
     score_merged["Time_reduction"]=score_merged["Time_y"].divide(score_merged["Time_x"])
     score_merged["Node_reduction"]=score_merged["Nodes_y"].divide(score_merged["Nodes_x"])
-
     score_merged = score_merged[["Time_reduction","Node_reduction", "Instance", "Heuristic_x"]].groupby(["Instance", "Heuristic_x"]).mean().reset_index()
     means = score_merged[["Time_reduction","Heuristic_x"]].groupby("Heuristic_x").mean()
     stds = score_merged[["Time_reduction","Heuristic_x"]].groupby("Heuristic_x").std()
     print("Mean time reduction factor: ")
-    display(means)
+    display(means.to_string())
     print("Std time reduction factor: ")
-    display(stds)
-    print(score_merged[["Time_reduction","Heuristic_x"]])
-
+    display(stds.to_string())
+    #print(score_merged[["Time_reduction","Heuristic_x"]])
     means = score_merged[["Node_reduction","Heuristic_x"]].groupby("Heuristic_x").mean()
     stds = score_merged[["Node_reduction","Heuristic_x"]].groupby("Heuristic_x").std()
     print("Mean Node reduction factor: ")
-    display(means)
+    display(means.to_string())
     print("Std Node reduction factor: ")
-    display(stds)
+    display(stds.to_string())
 def print_all(path):
     """
         Prints all performance indicators
     """
     import sys
     pd.options.display.float_format = '{:,.6f}'.format
-
+    print(path)
     original_stdout = sys.stdout
-    print("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+path+'benchmark.txt')
-    with open("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+path+'benchmark.txt', 'w') as f:
+    with open("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+ path +'benchmark.txt', 'w') as f:
         sys.stdout = f
-        eval = get_eval("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/benchmarks/"+path)
+        eval = get_eval("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+ path +"benchmarks/")
+        best_score_found(eval)
         score_first(eval)
         score_best(eval)
         node_optimality(eval)
         time_total(eval)
         area_under_curve(eval)
         time_reduction(eval)
+
         sys.stdout = original_stdout
