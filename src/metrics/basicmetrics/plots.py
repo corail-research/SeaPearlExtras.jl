@@ -345,8 +345,6 @@ def performance_plot_score_first(performance, ax=None, save_path=None):
 
 
 def performance_plot_score_best(performance, ax=None, save_path=None):
-    df = performance.loc[
-    performance[(performance["SolutionFound"] == 1)].groupby(["Episode", "Instance", "Heuristic","Strategy"])["Score"].idxmin()][["Instance", "Score", "Heuristic","Strategy"]]
 
     def split_val(input):
         if "random" in input :
@@ -360,8 +358,22 @@ def performance_plot_score_best(performance, ax=None, save_path=None):
         else :
             return input
 
+    def add_comma(input):
+        if len(re.findall(r'\d+',input))!= 0:
+            return input.replace(re.findall(r'\d+',input)[0], ' - ' + re.findall(r'\d+',input)[0])        
+
+    def process(x):
+        count[(x.Heuristic,x.Strategy)] += 1
+        if x.Heuristic =="random":
+            return count[(x.Heuristic,x.Strategy)] / (max_instance*10)
+        else :
+            return count[(x.Heuristic,x.Strategy)] / (max_instance)
+        
+    df = performance.loc[performance[(performance["SolutionFound"] == 1)].groupby(["Episode", "Instance", "Heuristic","Strategy"])["Score"].idxmin()][["Instance", "Score", "Heuristic","Strategy"]]
+
     df["id"] = df["Heuristic"].apply(split_val)
     df["Heuristic"] = df["Heuristic"].apply(remove_id)
+    df["Strategy"] = df["Strategy"].apply(add_comma)
 
     df["Score_max"] = df.groupby(["Strategy","Heuristic","Instance"])["Score"].transform(max)
     df["Score_min"] = df.groupby(["Strategy","Heuristic","Instance"])["Score"].transform(min)
@@ -374,14 +386,8 @@ def performance_plot_score_best(performance, ax=None, save_path=None):
     df["Ratio_max"] = df.apply(lambda x: x["Score_max"] / best[x["Instance"]] if best[x["Instance"]] > 0 else best[x["Instance"]] / x["Score_max"], axis=1)
 
     max_instance = df["Instance"].max()
-    def process(x):
-        count[(x.Heuristic,x.Strategy)] += 1
-        if x.Heuristic =="random":
-            return count[(x.Heuristic,x.Strategy)] / (max_instance*10)
-        else :
-            return count[(x.Heuristic,x.Strategy)] / (max_instance)
-        
-        
+
+
     df = df.sort_values("Ratio_mean")
     count = {(heuristic,strategy) : 0 for heuristic,strategy in set(zip(df["Heuristic"],df["Strategy"]))}
     df["Proportion_mean"] = df.apply(process, axis =1)
@@ -394,39 +400,61 @@ def performance_plot_score_best(performance, ax=None, save_path=None):
     count = {(heuristic,strategy) : 0 for heuristic,strategy in set(zip(df["Heuristic"],df["Strategy"]))}
     df["Proportion_max"] = df.apply(process, axis =1)
 
-        #df = df.loc[df['Heuristic'].isin(["3layer-DFS","random-DFSearch1000", "3layer-ILDSearch1000", "random-ILDS0", "3layer-ILDS0", "3layer-ILDS1", "3layer-ILDS2"])]
+
+            #df = df.loc[df['Heuristic'].isin(["3layer-DFS","random-DFSearch1000", "3layer-ILDSearch1000", "random-ILDS0", "3layer-ILDS0", "3layer-ILDS1", "3layer-ILDS2"])]
     maxRa = max(df["Ratio_mean"].max(),df["Ratio_min"].max(),df["Ratio_max"].max())
     for heuristic,strategy in set(zip(df["Heuristic"],df["Strategy"])): #set the correct scale, we basically add two points
-        df.loc[len(df)] = [-1, -1, heuristic,strategy,-1,-1,-1,-1, 1, 1, 1, 0, 0, 0]
-        df.loc[len(df)] = [-1, -1, heuristic,strategy,-1,-1,-1,-1, maxRa,maxRa,maxRa,1,1, 1]
+        df.loc[len(df)] = ([-1, -1, heuristic,strategy,-1,-1,-1,-1, 0, 0, 0, -0.0001, -0.0001, -0.0001])
+        df.loc[len(df)] = ([-1, -1, heuristic,strategy,-1,-1,-1,-1, maxRa+0.001,maxRa+0.001,maxRa+0.001,1.0001,1.0001, 1.0001])
 
-    df  = df.loc[(df["Heuristic"]=="random")&(df["Strategy"]=="ILDS0")]
-
+    df  = df.loc[((df["Strategy"].isin(["ILDSearch - 100","ILDSearch - 1000"])) & (df["Heuristic"]=="3layer"))| ((df["Strategy"].isin([ "DFSearch - 1000"])) & (df["Heuristic"]=="random"))]
+    #df  = df.loc[((df["Strategy"].isin(["ILDSearch100000", "ILDSearch10000", "ILDSearch1000"])) & (df["Heuristic"]=="random"))]
         #df = df[df.Heuristic.str.contains('ILDS0',case=False)]
 
-        #df = df.loc[df['Heuristic'].isin(["random-ILDS0"])]    
-        #df = df.groupby(["Ratio","Heuristic"]).min().reset_index()
+    #df = df.loc[df['Heuristic'].isin(["random-ILDS0"])]
+
     _, ax = plt.subplots()
-    idx = df.groupby(['Ratio_max'])['Proportion_max'].transform(max) == df['Proportion_max'] 
-    plot = sns.lineplot(data=df[idx].sort_values(["Ratio_max","Proportion_max"]), x="Ratio_max",  y="Proportion_max", hue="Heuristic", drawstyle='steps-pre', ax=ax, errorbar=None)
+    #idx = df.groupby(['Ratio_max'])['Proportion_max'].transform(max) == df['Proportion_max'] 
+    #plot = sns.lineplot(data=df[idx].sort_values(["Ratio_max","Proportion_max"]), x="Ratio_max",  y="Proportion_max", hue=df[["Heuristic", "Strategy"]].apply(tuple, axis=1), drawstyle='steps-pre', ax=ax, errorbar=None)*
+
+    df['Strategy - Budget'] = df['Strategy']
+    df=df.replace('random','Random')
+    df=df.replace('3layer','RL agent')
+
+    heur_hue_order = list(dict.fromkeys(list(df["Heuristic"])))
+    stra_hue_order = np.roll(list(dict.fromkeys(list(df['Strategy - Budget']))),1)
+    print(stra_hue_order)
+    palette = [sns.color_palette()[3], sns.color_palette()[2]]
     idx = df.groupby(['Ratio_mean'])['Proportion_mean'].transform(max) == df['Proportion_mean']
-    plot = sns.lineplot(data=df[idx].sort_values(["Ratio_mean","Proportion_mean"]), x="Ratio_mean",  y="Proportion_mean", hue="Heuristic", drawstyle='steps-pre', ax=ax, errorbar=None)
-    idx = df.groupby(['Ratio_min'])['Proportion_min'].transform(max) == df['Proportion_min']
-    plot = sns.lineplot(data=df[idx].sort_values(["Ratio_min","Proportion_min"]), x="Ratio_min",  y="Proportion_min", hue="Heuristic", drawstyle='steps-pre', ax=ax, errorbar=None)
-    idx = df.groupby(['Ratio_max'])['Proportion_max'].transform(max) == df['Proportion_max'] 
+    df_line = df[idx].sort_values(["Ratio_mean","Proportion_mean"])
 
-    #plot = sns.scatterplot(data=df[idx].sort_values(["Ratio_max","Proportion_max"]), x="Ratio_max",  y="Proportion_max", hue="Heuristic", ax=ax)
-    #plot = sns.scatterplot(data=df[idx].sort_values(["Ratio_min","Proportion_min"]), x="Ratio_min",  y="Proportion_min", hue="Heuristic", ax=ax)
+    plot = sns.lineplot(data = df_line, x="Ratio_mean",  y="Proportion_mean", hue="Heuristic", style='Strategy - Budget', hue_order = heur_hue_order, style_order = stra_hue_order, drawstyle='steps-post', ax=ax, errorbar=None, palette  = palette, linewidth=3)
+        #idx = df.groupby(['Ratio_min'])['Proportion_min'].transform(max) == df['Proportion_min']
+        #plot = sns.lineplot(data=df[idx].sort_values(["Ratio_min","Proportion_min"]), x="Ratio_min",  y="Proportion_min", hue=df[["Heuristic", "Strategy"]].apply(tuple, axis=1), drawstyle='steps-pre', ax=ax, errorbar=None)
 
 
-    #df1 = df[["Proportion_max","Ratio_max" ]].sort_values(["Proportion_max"])
-    #df2 = df[["Proportion_min","Ratio_min" ]].sort_values(["Proportion_min"])
-    #ax.fill_betweenx(list(df2["Proportion_min"]), list(df2["Ratio_min"]), list(df1["Ratio_max"]), alpha=0.2)
+        #plot = sns.scatterplot(data=df, x="Ratio_mean",  y="Proportion_mean", hue="Heuristic", ax=ax)
+        #plot = sns.scatterplot(data=df, x="Ratio_min",  y="Proportion_min", hue="Heuristic", ax=ax)
+    for idx, heuristic in enumerate(heur_hue_order):
+        for idx_2, strategy in enumerate(stra_hue_order):
+            print(heuristic, strategy)
+            df_heuristic = df.loc[(df["Heuristic"]== heuristic) & (df["Strategy - Budget"] == strategy)]
+            df1 = df_heuristic[["Proportion_max","Ratio_max"]].sort_values(["Proportion_max"])
+            df2 = df_heuristic[["Proportion_min","Ratio_min"]].sort_values(["Proportion_min"])
+            if heuristic == "Random" :
+                ax.fill_betweenx(list(df2["Proportion_min"]), list(df2["Ratio_min"]), list(df1["Ratio_max"]), step = "pre", alpha=0.2, color=palette[idx]) #, hatch=r"//"
+
     plot.set(
         xlabel="Within this factor of the best score",
-        ylabel="Proportion of the {} instances".format(max_instance),
-        title="Performance profile for best score.",
+        ylabel="Proportion of the {} instances".format(max_instance)
     )
+    for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
+                ax.get_xticklabels() + ax.get_yticklabels()):
+        item.set_fontsize(18)
+    ax.set_xlim([0.99, 1.65])
+    ax.set_ylim([-0.001, 1.001])
+    plt.title("Performance profile for best score", fontsize = 23)
+    plot.legend(labelspacing = 0.65, fontsize=15)
     save_fig(plot, save_path, "performance_score_best")
     return df
 

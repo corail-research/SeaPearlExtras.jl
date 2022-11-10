@@ -7,6 +7,19 @@ import pandas as pd
 import seaborn as sns
 pd.options.display.float_format = '{:,.4f}'.format
 
+def split_val(input):
+    if "random" in input and len(re.findall(r'\d+',input)) != 0:
+        print(input)
+        return re.findall(r'\d+',input)[0]
+    else :
+        return 0
+
+def remove_id(input):
+    if "random" in input and len(re.findall(r'\d+',input)) != 0:
+        return input.replace(re.findall(r'\d+',input)[0], '')
+    else :
+        return input
+    
 def get_eval(path):
     files = os.listdir(path)
     # We keep only csv files
@@ -63,23 +76,18 @@ def area_under_curve(eval):
     print("Std first AUC: ")
     display(stds.to_string())
 
+    
 def score_best(eval):
-    best_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic", "Strategy"])["Score"].agg(lambda x: x.idxmin())]
-    means = best_solution[["Score","Nodes","Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).mean()
-    stds = best_solution[["Score","Nodes","Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).std()
+    eval["num"] = eval["Heuristic"].apply(split_val)
+    eval["Heuristic"] = eval["Heuristic"].apply(remove_id)
+    best_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Heuristic","num", "Strategy","Instance"])["Score"].agg(lambda x: x.idxmin())]
+    best_solution.loc[(best_solution["Heuristic"]=="3layer")&(best_solution["Strategy"]=="ILDSearch100000") ]
+    means = best_solution[["Score","num","Nodes","Time","Heuristic","Strategy"]].groupby(["Heuristic", "Strategy"]).mean()
+    stds = best_solution[["Score","num","Nodes","Time","Heuristic", "Strategy"]].groupby(["Heuristic", "Strategy"]).std()
     print("Mean best score: ")
     display(means.to_string())
     print("Std best score: ")
     display(stds.to_string())
-    
-def best_score_found(eval):
-    best_solution = eval.loc[eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance"])["Score"].agg(lambda x: x.idxmin())]
-    means = best_solution[["Score","Nodes"]].mean()
-    stds = best_solution[["Score","Nodes"]].std()
-    print("Mean best score: ")
-    display(means.to_string())
-    print("Std best score: ")
-    display(stds.to_string())    
 
 def time_total(eval):
     data = eval[eval["Solution"] == 0]
@@ -125,15 +133,17 @@ def print_all(path):
     pd.options.display.float_format = '{:,.6f}'.format
     print(path)
     original_stdout = sys.stdout
-    with open("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+ path +'benchmark.txt', 'w') as f:
-        sys.stdout = f
-        eval = get_eval("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+ path +"benchmarks/")
-        best_score_found(eval)
-        score_first(eval)
-        score_best(eval)
-        node_optimality(eval)
-        time_total(eval)
-        area_under_curve(eval)
-        time_reduction(eval)
-
+    try :
+        with open("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+ path +'benchmark_V2.txt', 'w') as f:
+            sys.stdout = f
+            eval = get_eval("/home/martom/SeaPearl/SeaPearlZoo/learning_cp/comparison/"+ path +"benchmarks/")
+            score_first(eval)
+            score_best(eval)
+            node_optimality(eval)
+            time_total(eval)
+            area_under_curve(eval)
+            time_reduction(eval)
+    except:
+        print("Benchmark FAILED")
         sys.stdout = original_stdout
+    sys.stdout = original_stdout

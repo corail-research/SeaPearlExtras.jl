@@ -26,7 +26,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             :Solution => 0,
             :SolutionFound => missing,
             :Nodes => metrics.meanNodeVisitedUntilEnd[i],
-            :Time => metrics.timeneeded[i],
+            :Time => metrics.TotalTimeNeeded[i],
             :Score => missing,
             :Reward => isnothing(metrics.totalReward) || isnothing(metrics.totalReward[i]) ? missing : metrics.totalReward[i],
             :Loss => isnothing(metrics.loss) || isnothing(metrics.loss[i]) ? missing : metrics.loss[i]
@@ -37,6 +37,7 @@ function storedata(metrics::AbstractMetrics; filename::String="")
             solutionData[:Solution] = j
             solutionData[:SolutionFound] = metrics.solutionFound[i][j]
             solutionData[:Nodes] = metrics.nodeVisited[i][j]
+            solutionData[:Time] = metrics.timeNeeded[i][j]
             solutionData[:Score] = isnothing(metrics.scores) || isnothing(metrics.scores[i]) || isnothing(metrics.scores[i][j]) ? missing : metrics.scores[i][j]
             push!(df, solutionData)
         end
@@ -65,7 +66,7 @@ function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
             :Solution => 0,
             :SolutionFound => missing,
             :Nodes => metrics[j].meanNodeVisitedUntilEnd[i],
-            :Time => metrics[j].timeneeded[i],
+            :Time => metrics[j].TotalTimeNeeded[i],
             :Score => missing,
             :Reward => isnothing(metrics[j].totalReward) || isnothing(metrics[j].totalReward[i]) ? missing : metrics[j].totalReward[i],
             :Loss => isnothing(metrics[j].loss) || isnothing(metrics[j].loss[i]) ? missing : metrics[j].loss[i]
@@ -76,6 +77,7 @@ function storedata(metrics::Vector{<:AbstractMetrics}; filename::String="")
             solutionData[:Solution] = k
             solutionData[:SolutionFound] = metrics[j].solutionFound[i][k]
             solutionData[:Nodes] = metrics[j].nodeVisited[i][k]
+            solutionData[:Time] = metrics[j].timeNeeded[i][k]
             solutionData[:Score] = isnothing(metrics[j].scores) || isnothing(metrics[j].scores[i]) || isnothing(metrics[j].scores[i][k]) ? missing : metrics[j].scores[i][k]
             push!(df, solutionData)
         end
