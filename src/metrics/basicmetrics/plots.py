@@ -151,7 +151,7 @@ def node_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
 
 
 def score_first(eval, estimator=np.mean, ax=None, save_path=None, training=None):
-    eval["Episode"] = (eval["Episode"]-1)/max(eval["Episode"])*max(training["Episode"])
+    eval["Episode"] = eval["Episode"]/20*10000
     first_solution = eval.loc[
         eval[eval["SolutionFound"] == 1].groupby(["Episode", "Instance", "Heuristic"])["Solution"].idxmin()].sort_values("Heuristic", key=lambda series: apply_key(series, training))
     last_solution = eval.loc[
@@ -161,16 +161,22 @@ def score_first(eval, estimator=np.mean, ax=None, save_path=None, training=None)
     data_opti = last_solution.groupby(["Instance","Episode"])["Score"].min()
     data_opti = data_opti.to_frame().reset_index()
     data_opti= data_opti.assign(Heuristic = "Optimal Score")
+    data_opti.loc[data_opti["Heuristic"] == "Optimal Score", "Score"] = -9.7
     first_solution = pd.concat([first_solution,data_opti]).reset_index()
-    plot = sns.lineplot(data=first_solution, y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax)
-    ax.set_title("Score at first solution", fontsize=22, fontweight="medium")
-    plot.legend(fontsize='x-large', title_fontsize='40')
-    ax.set_xlabel("Training episode", fontsize=18) 
-    ax.set_ylabel("Score obtained", fontsize=18) 
+    first_solution = first_solution.replace("General", "General reward")
+    first_solution = first_solution.replace("Score", "Score reward")
+    palette = sns.color_palette()
+    plot = sns.lineplot(data=first_solution.loc[first_solution["Heuristic"] != "Random"], y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax, ci = None, palette = palette[1:4], linewidth=2.5)
+    plot = sns.lineplot(data=first_solution.loc[first_solution["Heuristic"] == "Random"], y="Score", x="Episode", hue="Heuristic", estimator=estimator, ax=ax, palette = [palette[0]], err_style ="band", errorbar = "se", linewidth=2.5)
+    ax.set_title("MIS (50,8)", fontsize=26,  fontweight="medium")
+    plot.legend(fontsize='x-large', title_fontsize='40', loc='best')
+    ax.set_xlabel("Training episode", fontsize=22) 
+    ax.set_ylabel("", fontsize=22) 
     plot.set_yticklabels(plot.get_yticks(), size = "x-large")
     plot.set_xticklabels(plot.get_xticks(), size = "x-large")
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos:'{:,.0f}'.format(x)))
     ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos:'{:,.0f}'.format(x)))
+    ax.set_xlim([0, 10000])
     save_fig(plot, save_path, "eval_score_first_solution")
 
 def score_best(eval, estimator=np.mean, ax=None, save_path=None, training=None):
@@ -347,21 +353,24 @@ def performance_plot_score_first(performance, ax=None, save_path=None):
 def performance_plot_score_best(performance, ax=None, save_path=None):
 
     def split_val(input):
-        if "random" in input :
+        if "random" in input and len(re.findall(r'\d+',input)) != 0:
             return re.findall(r'\d+',input)[0]
         else :
             return 0
 
     def remove_id(input):
-        if "random" in input :
+        if "random" in input and len(re.findall(r'\d+',input)) != 0:
             return input.replace(re.findall(r'\d+',input)[0], '')
         else :
             return input
-
+        
     def add_comma(input):
         if len(re.findall(r'\d+',input))!= 0:
             return input.replace(re.findall(r'\d+',input)[0], ' - ' + re.findall(r'\d+',input)[0])        
 
+    def merge(list):
+        return list[0]+ " - "+ list[1]
+    
     def process(x):
         count[(x.Heuristic,x.Strategy)] += 1
         if x.Heuristic =="random":
@@ -421,28 +430,28 @@ def performance_plot_score_best(performance, ax=None, save_path=None):
     df=df.replace('random','Random')
     df=df.replace('3layer','RL agent')
 
-    heur_hue_order = list(dict.fromkeys(list(df["Heuristic"])))
+    heur_hue_order = list(dict.fromkeys(list(df[['Heuristic', 'Strategy - Budget']].apply(merge, axis=1))))
+    heur_hue_order = [heur_hue_order[1], heur_hue_order[0], heur_hue_order[2]]
     stra_hue_order = np.roll(list(dict.fromkeys(list(df['Strategy - Budget']))),1)
-    print(stra_hue_order)
-    palette = [sns.color_palette()[3], sns.color_palette()[2]]
+    #palette = [sns.color_palette()[3], sns.color_palette()[2], sns.color_palette()[1]]
+    palette = sns.color_palette()
     idx = df.groupby(['Ratio_mean'])['Proportion_mean'].transform(max) == df['Proportion_mean']
     df_line = df[idx].sort_values(["Ratio_mean","Proportion_mean"])
 
-    plot = sns.lineplot(data = df_line, x="Ratio_mean",  y="Proportion_mean", hue="Heuristic", style='Strategy - Budget', hue_order = heur_hue_order, style_order = stra_hue_order, drawstyle='steps-post', ax=ax, errorbar=None, palette  = palette, linewidth=3)
-        #idx = df.groupby(['Ratio_min'])['Proportion_min'].transform(max) == df['Proportion_min']
-        #plot = sns.lineplot(data=df[idx].sort_values(["Ratio_min","Proportion_min"]), x="Ratio_min",  y="Proportion_min", hue=df[["Heuristic", "Strategy"]].apply(tuple, axis=1), drawstyle='steps-pre', ax=ax, errorbar=None)
+    plot = sns.lineplot(data = df_line, x="Ratio_mean",  y="Proportion_mean", hue=df[['Heuristic', 'Strategy - Budget']].apply(merge, axis=1), hue_order = heur_hue_order, drawstyle='steps-post', ax=ax, errorbar=None, palette  = palette, linewidth=2.5)
+    #idx = df.groupby(['Ratio_min'])['Proportion_min'].transform(max) == df['Proportion_min']
+    #plot = sns.lineplot(data=df[idx].sort_values(["Ratio_min","Proportion_min"]), x="Ratio_min",  y="Proportion_min", hue=df[["Heuristic", "Strategy"]].apply(tuple, axis=1), drawstyle='steps-pre', ax=ax, errorbar=None)
 
 
-        #plot = sns.scatterplot(data=df, x="Ratio_mean",  y="Proportion_mean", hue="Heuristic", ax=ax)
-        #plot = sns.scatterplot(data=df, x="Ratio_min",  y="Proportion_min", hue="Heuristic", ax=ax)
+    #plot = sns.scatterplot(data=df, x="Ratio_mean",  y="Proportion_mean", hue="Heuristic", ax=ax)
+    #plot = sns.scatterplot(data=df, x="Ratio_min",  y="Proportion_min", hue="Heuristic", ax=ax)
     for idx, heuristic in enumerate(heur_hue_order):
         for idx_2, strategy in enumerate(stra_hue_order):
-            print(heuristic, strategy)
-            df_heuristic = df.loc[(df["Heuristic"]== heuristic) & (df["Strategy - Budget"] == strategy)]
+            df_heuristic = df.loc[(df[['Heuristic', 'Strategy - Budget']].apply(merge, axis=1)== heuristic)]
             df1 = df_heuristic[["Proportion_max","Ratio_max"]].sort_values(["Proportion_max"])
             df2 = df_heuristic[["Proportion_min","Ratio_min"]].sort_values(["Proportion_min"])
-            if heuristic == "Random" :
-                ax.fill_betweenx(list(df2["Proportion_min"]), list(df2["Ratio_min"]), list(df1["Ratio_max"]), step = "pre", alpha=0.2, color=palette[idx]) #, hatch=r"//"
+            if "Random" in heuristic :
+                ax.fill_betweenx(list(df2["Proportion_min"]), list(df2["Ratio_min"]), list(df1["Ratio_max"]), step = "pre", alpha=0.1, color=palette[idx]) #, hatch=r"//"
 
     plot.set(
         xlabel="Within this factor of the best score",
@@ -451,7 +460,7 @@ def performance_plot_score_best(performance, ax=None, save_path=None):
     for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                 ax.get_xticklabels() + ax.get_yticklabels()):
         item.set_fontsize(18)
-    ax.set_xlim([0.99, 1.65])
+    ax.set_xlim([0.98, 6.25])
     ax.set_ylim([-0.001, 1.001])
     plt.title("Performance profile for best score", fontsize = 23)
     plot.legend(labelspacing = 0.65, fontsize=15)

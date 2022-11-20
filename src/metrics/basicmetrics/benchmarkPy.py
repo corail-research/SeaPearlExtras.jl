@@ -9,7 +9,6 @@ pd.options.display.float_format = '{:,.4f}'.format
 
 def split_val(input):
     if "random" in input and len(re.findall(r'\d+',input)) != 0:
-        print(input)
         return re.findall(r'\d+',input)[0]
     else :
         return 0
