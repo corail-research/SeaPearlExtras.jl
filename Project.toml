@@ -1,7 +1,7 @@
 name = "SeaPearlExtras"
 uuid = "90978a9a-af5e-4113-9033-e3aa0a1ac968"
 authors = ["PierreTsr <pierre.borie.tessier@gmail.com>","3rdCore <tom.marty@polymtl.ca>"]
-version = "0.2.0"
+version = "0.3.0"
 
 
 [deps]
